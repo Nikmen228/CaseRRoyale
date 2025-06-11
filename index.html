@@ -36,14 +36,16 @@
         }
         #roulette-modal { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); }
         #roulette-line { left: 50%; width: 4px; background: linear-gradient(rgba(255,255,255,0), var(--button-text-color), rgba(255,255,255,0)); transform: translateX(-50%); }
-        .roulette-item { width: 120px; height: 120px; }
-        .weapon-icon, .case-icon { width: 48px; height: 48px; }
-        .rarity-Common { background-color: #3d424b; }
-        .rarity-Uncommon { background-color: #4a6a8b; }
-        .rarity-Rare { background-color: #5d4a8b; }
-        .rarity-Mythical { background-color: #8b4a78; }
-        .rarity-Legendary { background-color: #a44e4e; }
-        .rarity-Ancient { background-color: #daa520; }
+        .roulette-item { width: 140px; height: 140px; }
+        .weapon-icon { width: 64px; height: 64px; object-fit: contain; }
+        .case-icon { width: 64px; height: 64px; }
+        .inventory-weapon-icon { width: 48px; height: 48px; object-fit: contain;}
+        .rarity-Common { background-image: linear-gradient(to top, #3d424b, #525964); }
+        .rarity-Uncommon { background-image: linear-gradient(to top, #4a6a8b, #6089b2); }
+        .rarity-Rare { background-image: linear-gradient(to top, #5d4a8b, #7760b2); }
+        .rarity-Mythical { background-image: linear-gradient(to top, #8b4a78, #b2609c); }
+        .rarity-Legendary { background-image: linear-gradient(to top, #a44e4e, #d36565); }
+        .rarity-Ancient { background-image: linear-gradient(to top, #daa520, #e8c422); }
         #wheel-canvas { transition: transform 7s cubic-bezier(0.2, 0.9, 0.1, 1); }
         .wheel-marker { width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 30px solid var(--button-color); position: absolute; top: -10px; left: 50%; transform: translateX(-50%); }
         input[type="number"], select { background-color: var(--secondary-bg-color); border: 1px solid var(--hint-color); color: var(--text-color); }
@@ -132,6 +134,57 @@
         tg.ready();
         tg.expand();
 
+        // --- ДВИЖОК ЗВУКОВ ---
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const soundEngine = {
+            play: (type) => {
+                if (!audioContext) return;
+                try {
+                    let oscillator, gainNode;
+                    switch(type) {
+                        case 'tick':
+                            oscillator = audioContext.createOscillator();
+                            gainNode = audioContext.createGain();
+                            oscillator.type = 'sine';
+                            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.1);
+                            oscillator.connect(gainNode);
+                            gainNode.connect(audioContext.destination);
+                            oscillator.start(audioContext.currentTime);
+                            oscillator.stop(audioContext.currentTime + 0.1);
+                            break;
+                        case 'win':
+                             playSoundSequence([[600, 0.1], [800, 0.1], [1200, 0.2]]);
+                            break;
+                        case 'buy_sell':
+                            playSoundSequence([[523.25, 0.08], [783.99, 0.12]]);
+                            break;
+                        case 'error':
+                            playSoundSequence([[200, 0.1], [150, 0.2]]);
+                            break;
+                    }
+                } catch(e) { console.error("Sound error:", e); }
+            }
+        };
+
+        function playSoundSequence(notes) {
+            let currentTime = audioContext.currentTime;
+            notes.forEach(([freq, duration]) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(freq, currentTime);
+                gainNode.gain.setValueAtTime(0.3, currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, currentTime + duration);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start(currentTime);
+                oscillator.stop(currentTime + duration);
+                currentTime += duration;
+            });
+        }
+        
         // --- ГЛОБАЛЬНОЕ СОСТОЯНИЕ И ДАННЫЕ ИГРЫ ---
         let state = { balance: 2500, items: [], cases: {} };
 
@@ -143,15 +196,6 @@
             Legendary: { name: 'Легендарный', color: '#D32CE6' }
         };
         
-        const WEAPON_ICONS = {
-            pistol: `<svg class="weapon-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M54 30H46V22C46 19.7909 44.2091 18 42 18H28C25.7909 18 24 19.7909 24 22V36H12C10.8954 36 10 36.8954 10 38V46C10 47.1046 10.8954 48 12 48H24V50C24 52.2091 25.7909 54 28 54H42C44.2091 54 46 52.2091 46 50V38H54C55.1046 38 56 37.1046 56 36V32C56 30.8954 55.1046 30 54 30Z" stroke="currentColor" stroke-width="4"/></svg>`,
-            smg: `<svg class="weapon-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M54 24V18H46M46 18L10 18V24M46 18L38 24M10 24H34M10 24V40H52V24M34 24V40M44 40V50H54V40" stroke="currentColor" stroke-width="4"/></svg>`,
-            rifle: `<svg class="weapon-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M58 14L34 14L28 22L8 22L8 30L30 30M58 14V22H48L42 30H30M58 14L48 8M30 30V38H36L42 46H50V38H58V30H42" stroke="currentColor" stroke-width="4"/></svg>`,
-            sniper: `<svg class="weapon-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 32L58 32M48 24H58M48 40H58M8 32L24 20V44L8 32Z" stroke="currentColor" stroke-width="4"/><path d="M26 18L32 12" stroke="currentColor" stroke-width="4"/><path d="M38 18L44 12" stroke="currentColor" stroke-width="4"/></svg>`,
-            knife: `<svg class="weapon-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M56 38C56 38 38.8 44.4 26 32C13.2 19.6 26 8 26 8L40 22L56 38Z" stroke="currentColor" stroke-width="4"/><path d="M18 42L32 28" stroke="currentColor" stroke-width="4"/><path d="M22 48H12V38" stroke="currentColor" stroke-width="4"/></svg>`,
-            default: `<svg class="weapon-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.75 12H14.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-        };
-
         const CASE_ICONS = {
             Common: `<svg class="case-icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" fill="none" stroke-width="2"/></svg>`,
             Uncommon: `<svg class="case-icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" fill="none" stroke-width="2"/><line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="2"/></svg>`,
@@ -166,24 +210,10 @@
                 price: 100, 
                 rarity: 'Common', 
                 items: [
-                    {name: 'P250 | Защитная окраска', rarity: 'Uncommon', price: 15},
-                    {name: 'UMP-45 | Лунная ночь', rarity: 'Uncommon', price: 20},
-                    {name: 'Five-Seven | Апельсиновая корка', rarity: 'Rare', price: 75},
-                    {name: 'M4A4 | Городская DDPAT', rarity: 'Rare', price: 90},
-                    {name: 'Glock-18 | Водяной', rarity: 'Mythical', price: 150},
-                    {name: 'AWP | Африканская сетка', rarity: 'Legendary', price: 200},
-                ]
-            },
-            uncommon_case: { 
-                name: 'Кейс "Горизонт"', 
-                price: 250, 
-                rarity: 'Uncommon', 
-                items: [
-                    {name: 'Glock-18 | Призраки', rarity: 'Rare', price: 60},
-                    {name: 'Tec-9 | Исаак', rarity: 'Rare', price: 80},
-                    {name: 'M4A1-S | Сайрекс', rarity: 'Mythical', price: 300},
-                    {name: 'AK-47 | Картель', rarity: 'Mythical', price: 450},
-                    {name: 'AWP | Неонуар', rarity: 'Legendary', price: 800},
+                    {name: 'P250 | Защитная окраска', rarity: 'Uncommon', price: 15, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'M4A4 | Городская DDPAT', rarity: 'Rare', price: 90, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'Glock-18 | Водяной', rarity: 'Mythical', price: 150, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'AWP | Африканская сетка', rarity: 'Legendary', price: 200, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
                 ]
             },
             rare_case: { 
@@ -191,21 +221,10 @@
                 price: 750, 
                 rarity: 'Rare', 
                 items: [
-                    {name: 'P250 | Покоритель', rarity: 'Rare', price: 120},
-                    {name: 'AK-47 | Элитное снаряжение', rarity: 'Mythical', price: 500},
-                    {name: 'AWP | Азимов', rarity: 'Legendary', price: 1500},
-                    {name: 'M4A4 | Вой', rarity: 'Ancient', price: 3000},
-                ]
-            },
-            mythical_case: { 
-                name: 'Кейс "Гидра"', 
-                price: 2000, 
-                rarity: 'Mythical', 
-                items: [
-                    {name: 'M4A4 | Неонуар', rarity: 'Mythical', price: 1200},
-                    {name: 'Galil AR | Сахарные грёзы', rarity: 'Mythical', price: 1500},
-                    {name: 'AWP | История о драконе', rarity: 'Legendary', price: 5000},
-                    {name: 'Спортивные перчатки | Порок', rarity: 'Ancient', price: 7500},
+                    {name: 'P250 | Покоритель', rarity: 'Rare', price: 120, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'AK-47 | Элитное снаряжение', rarity: 'Mythical', price: 500, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'AWP | Азимов', rarity: 'Legendary', price: 1500, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'M4A4 | Вой', rarity: 'Ancient', price: 3000, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
                 ]
             },
             legendary_case: { 
@@ -213,9 +232,9 @@
                 price: 5000, 
                 rarity: 'Legendary', 
                 items: [
-                    {name: 'AK-47 | Огненный змей', rarity: 'Legendary', price: 4000},
-                    {name: 'AWP | Медуза', rarity: 'Legendary', price: 6000},
-                    {name: 'Нож-бабочка | Градиент', rarity: 'Ancient', price: 10000},
+                    {name: 'AK-47 | Огненный змей', rarity: 'Legendary', price: 4000, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'AWP | Медуза', rarity: 'Legendary', price: 6000, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
+                    {name: 'Нож-бабочка | Градиент', rarity: 'Ancient', price: 10000, image: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovb3supP0uLrsPWVa49KygL-HnvD8J_WEwD0Gup1w2r-W8Nys2wewqB81ZWmhcYWWcwE-YwnR-Qe6l-jug567vJ_XiSw0OTBrcYA/360fx360f'},
                 ]
             }
         };
@@ -252,9 +271,11 @@
             inventorySkinsList.style.display = hasSkins ? 'block' : 'none';
             if(hasSkins) {
                 inventorySkinsList.innerHTML = state.items.map((item, index) => {
-                    const icon = WEAPON_ICONS[getWeaponType(item.name)] || WEAPON_ICONS.default;
                     return `<div class="card p-3 rounded-lg flex justify-between items-center gap-4">
-                        <div class="flex items-center gap-3"> ${icon} <span class="font-semibold">${item.name}</span> </div>
+                        <div class="flex items-center gap-3"> 
+                            <img src="${item.image}" class="inventory-weapon-icon" alt="${item.name}"/>
+                            <span class="font-semibold">${item.name}</span> 
+                        </div>
                         <button onclick="sellItem(${index})" class="sell-button font-bold py-2 px-4 rounded-lg">$${item.price.toFixed(2)}</button>
                     </div>`;
                 }).join('');
@@ -271,7 +292,7 @@
                     const icon = CASE_ICONS[caseData.rarity];
                     return `<div class="card p-3 rounded-lg flex justify-between items-center gap-4">
                         <div class="flex items-center gap-3">
-                            <div style="color: ${rarityData.color}">${icon}</div>
+                            <div style="color: ${rarityData.color}" class="case-icon">${icon}</div>
                             <div>
                                 <span class="font-semibold">${caseData.name}</span>
                                 <small class="block" style="color: ${rarityData.color};">x${state.cases[id]}</small>
@@ -307,6 +328,7 @@
             void headerCard.offsetWidth;
             headerCard.classList.add('flash-green');
 
+            soundEngine.play('buy_sell');
             tg.HapticFeedback.notificationOccurred('success');
             saveState();
             updateUI();
@@ -319,12 +341,14 @@
 
             if (state.balance < caseData.price) {
                 tg.HapticFeedback.notificationOccurred('error');
+                soundEngine.play('error');
                 headerCard.classList.add('flash-red');
                 return;
             }
             state.balance -= caseData.price;
             state.cases[caseId] = (state.cases[caseId] || 0) + 1;
             tg.HapticFeedback.notificationOccurred('success');
+            soundEngine.play('buy_sell');
             headerCard.classList.add('flash-green');
             saveState();
             updateUI();
@@ -333,6 +357,7 @@
         function prepareAndOpenCase(caseId) {
             if(!state.cases[caseId] || state.cases[caseId] <= 0) {
                 tg.HapticFeedback.notificationOccurred('error');
+                soundEngine.play('error');
                 return;
             }
             state.cases[caseId]--;
@@ -348,20 +373,27 @@
             rouletteItems[45] = winningItem;
 
             spinner.innerHTML = rouletteItems.map(item => {
-                const icon = WEAPON_ICONS[getWeaponType(item.name)] || WEAPON_ICONS.default;
                 return `<div class="roulette-item rarity-${item.rarity} flex-shrink-0 flex flex-col justify-center items-center p-2 text-white text-center">
-                    ${icon}
+                    <img src="${item.image}" class="weapon-icon" alt="${item.name}"/>
                     <div class="font-semibold text-xs text-shadow">${item.name}</div>
                 </div>`;
             }).join('');
             
             modal.classList.remove('hidden'); modal.classList.add('flex');
             
+            // Roulette sound and animation
+            let tickCount = 0;
+            const tickInterval = setInterval(() => {
+                soundEngine.play('tick');
+                tickCount++;
+                if (tickCount > 40) clearInterval(tickInterval);
+            }, 100);
+
             setTimeout(() => {
                 spinner.style.transition = 'none'; spinner.style.transform = 'translateX(0)';
                 setTimeout(() => {
                     spinner.style.transition = 'transform 5s cubic-bezier(0.1, 0.7, 0.3, 1)';
-                    const targetPosition = (45 * 120) - (modal.clientWidth / 2) + 60 + (Math.random() - 0.5) * 100;
+                    const targetPosition = (45 * 140) - (modal.clientWidth / 2) + 70 + (Math.random() - 0.5) * 120;
                     spinner.style.transform = `translateX(-${targetPosition}px)`;
                 }, 100);
             }, 10);
@@ -376,19 +408,11 @@
                 resultDisplay.querySelector('#result-item-price').textContent = `Стоимость: $${winningItem.price.toFixed(2)}`;
                 resultDisplay.classList.remove('hidden');
                 tg.HapticFeedback.notificationOccurred('success');
+                soundEngine.play('win');
             }, 5500);
         }
         
         // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ИНИЦИАЛИЗАЦИЯ ---
-        const getWeaponType = (name) => {
-            const n = name.toLowerCase();
-            if(n.includes('нож') || n.includes('knife') || n.includes('перчатки')) return 'knife';
-            if(n.includes('awp') || n.includes('ssg') || n.includes('графит')) return 'sniper';
-            if(n.includes('glock') || n.includes('p250') || n.includes('five-seven') || n.includes('tec-9') || n.includes('cz75')) return 'pistol';
-            if(n.includes('mac-10') || n.includes('ump-45') || n.includes('pp-bizon')) return 'smg';
-            if(n.includes('m4a4') || n.includes('m4a1-s') || n.includes('galil') || n.includes('scar-20') || n.includes('ak-47')) return 'rifle';
-            return 'default';
-        };
         const switchTab = (tabName) => {
             ['cases', 'inventory', 'wheel'].forEach(id => {
                 document.getElementById(`content-${id}`).classList.add('hidden');
@@ -399,7 +423,7 @@
         };
         const openCaseLogic = (caseId) => {
             const caseData = CASES_DATA[caseId];
-            const chances = [{rarity: 'Common', chance: 0}, {rarity: 'Uncommon', chance: 79.92}, {rarity: 'Rare', chance: 15.98}, {rarity: 'Mythical', chance: 3.2}, {rarity: 'Legendary', chance: 0.64}, {rarity: 'Ancient', chance: 0.26}];
+            const chances = [{rarity: 'Uncommon', chance: 79.92}, {rarity: 'Rare', chance: 15.98}, {rarity: 'Mythical', chance: 3.2}, {rarity: 'Legendary', chance: 0.64}, {rarity: 'Ancient', chance: 0.26}];
             const random = Math.random() * 100;
             let cumulative = 0;
             let chosenRarity = 'Uncommon';
@@ -461,6 +485,7 @@
             updateUI();
             
             spinButton.disabled = true; spinButton.textContent = 'Вращение...';
+            soundEngine.play('tick');
             
             const spinAngle = Math.random() * 360 + 360 * 7;
             wheelCanvas.style.transform = `rotate(${spinAngle}deg)`;
@@ -478,6 +503,7 @@
                 updateUI();
                 
                 tg.HapticFeedback.notificationOccurred(winnings > betValue ? 'success' : (winnings < betValue ? 'error' : 'warning'));
+                if (winnings > 0) soundEngine.play('win'); else soundEngine.play('error');
                 alert(`Выпало ${winningSector.label}! Ставка $${betValue.toFixed(2)}. Выигрыш: $${(winnings).toFixed(2)}.`);
 
                 spinButton.disabled = false; spinButton.textContent = 'Крутить!';
@@ -494,4 +520,3 @@
     </script>
 </body>
 </html>
-
