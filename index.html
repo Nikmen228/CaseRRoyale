@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Case Royale v10.4</title>
+    <title>Case Royale v11</title>
     <!-- Подключаем Tailwind CSS для стилей -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Подключаем скрипт Telegram Web App -->
@@ -15,7 +15,7 @@
     
     <style>
         /* =================================
-         НОВАЯ СИСТЕМА ДИЗАЙНА v10.4
+         НОВАЯ СИСТЕМА ДИЗАЙНА v11
          ================================= */
 
         :root {
@@ -60,7 +60,9 @@
             padding: 10px; width: 100%;
         }
         #main-nav {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             margin-bottom: 24px; padding: 8px; background-color: var(--bg-secondary);
             border-radius: 16px; box-shadow: var(--shadow-md); position: sticky; top: 1rem; z-index: 40;
         }
@@ -163,6 +165,10 @@
             <button onclick="switchTab('settings')" id="tab-settings" class="nav-button">
                 <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 <span>Настройки</span>
+            </button>
+            <button onclick="switchTab('admin')" id="tab-admin" class="nav-button hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <span>Админ</span>
             </button>
         </nav>
 
@@ -306,6 +312,33 @@
                  </div>
             </div>
         </div>
+
+        <div id="content-admin" class="hidden space-y-4">
+            <div class="card p-4">
+                <h2 class="text-xl font-bold mb-3">Панель Управления</h2>
+                <div class="space-y-2">
+                    <h3 class="font-semibold">Выдать деньги</h3>
+                    <div class="flex gap-2">
+                        <input id="admin-give-money-id" type="text" placeholder="ID игрока" class="flex-1">
+                        <input id="admin-give-money-amount" type="number" placeholder="Сумма" class="w-28">
+                        <button onclick="adminGiveMoney()" class="main-button !py-2 !px-4">Выдать</button>
+                    </div>
+                </div>
+                <div class="space-y-2 mt-4">
+                    <h3 class="font-semibold">Выдать кейс</h3>
+                    <div class="flex gap-2">
+                        <input id="admin-give-case-id" type="text" placeholder="ID игрока" class="flex-1">
+                        <select id="admin-give-case-select" class="w-40"></select>
+                        <button onclick="adminGiveCase()" class="main-button !py-2 !px-4">Выдать</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-4">
+                <h2 class="text-xl font-bold mb-3">Список игроков (симуляция)</h2>
+                <div id="admin-player-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Modals -->
@@ -418,7 +451,7 @@
             });
         }
         
-        // --- ГЛОБАЛЬНОЕ СОСТОЯНИЕ И ДАННЫЕ ИГРЫ (v10.3) ---
+        // --- ГЛОБАЛЬНОЕ СОСТОЯНИЕ И ДАННЫЕ ИГРЫ (v11) ---
         let state = {};
         const defaultState = { balance: 5, items: [], cases: {}, usedPromos: [], settings: { sound: true, theme: 'dark' } };
         let contractState = { selectedIndices: [] };
@@ -430,7 +463,8 @@
             Restricted: { name: 'Запрещенное', color: '#8847FF', level: 2 },
             Classified: { name: 'Засекреченное', color: '#D32CE6', level: 3 },
             Covert: { name: 'Тайное', color: '#EB4B4B', level: 4 },
-            Exceedingly_Rare: { name: 'Чрезвычайно редкое', color: '#FFD700', level: 5 }
+            Exceedingly_Rare: { name: 'Древнее', color: '#FFD700', level: 5 },
+            Incredible: { name: 'Невероятное', color: '#00FF7F', level: 6}
         };
         
         const ALL_SKINS = [
@@ -480,7 +514,14 @@
             { name: '★ Скелетный нож | Градиент', rarity: 'Exceedingly_Rare', price: 2200.00 }, { name: '★ Перчатки спецназа | Градиент', rarity: 'Exceedingly_Rare', price: 800.00 },
             { name: '★ Спортивные перчатки | Порок', rarity: 'Exceedingly_Rare', price: 1200.00 }, { name: '★ Нож Боуи | Градиент', rarity: 'Exceedingly_Rare', price: 500.00 },
             { name: '★ Нож «Бродяга» | Поверхностная закалка', rarity: 'Exceedingly_Rare', price: 450.00 }, { name: '★ Нож выживания | Убийство', rarity: 'Exceedingly_Rare', price: 300.00 },
-            { name: '★ Нож «Коготь» | Мраморный градиент', rarity: 'Exceedingly_Rare', price: 950.00 }, { name: '★ M9 Bayonet | Автотроника', rarity: 'Exceedingly_Rare', price: 1400.00 }
+            { name: '★ Нож «Коготь» | Мраморный градиент', rarity: 'Exceedingly_Rare', price: 950.00 }, { name: '★ M9 Bayonet | Автотроника', rarity: 'Exceedingly_Rare', price: 1400.00 },
+            
+            // Incredible (Lime/Cyan)
+            { name: '★ Karambit | Doppler (Ruby)', rarity: 'Incredible', price: 8000.00 },
+            { name: '★ Butterfly Knife | Doppler (Sapphire)', rarity: 'Incredible', price: 9500.00 },
+            { name: '★ M9 Bayonet | Crimson Web (FN)', rarity: 'Incredible', price: 6200.00 },
+            { name: '★ Sport Gloves | Pandora\'s Box (FN)', rarity: 'Incredible', price: 15000.00 },
+            { name: '★ AWP | Dragon Lore (FN)', rarity: 'Incredible', price: 12000.00 }
         ].sort((a,b) => a.price - b.price);
 
         const CASES_DATA = {
@@ -495,7 +536,7 @@
             winter_offensive_case: { name: 'Кейс "Обморожение"', price: 9.00, rarity: 'Classified', item_rarities: ['Mil_Spec', 'Restricted', 'Classified', 'Covert', 'Exceedingly_Rare'] },
             esports_2013_winter_case: { name: 'Наследие Чемпиона \'13', price: 14.00, rarity: 'Covert', item_rarities: ['Mil_Spec', 'Restricted', 'Classified', 'Covert', 'Exceedingly_Rare'] },
             weapon_case_2: { name: 'Оружейный Ящик II', price: 14.50, rarity: 'Covert', item_rarities: ['Mil_Spec', 'Restricted', 'Classified', 'Covert', 'Exceedingly_Rare'] },
-            knife_case: { name: 'Ящик с Клинками', price: 500, rarity: 'Covert', item_rarities: ['Exceedingly_Rare'] }
+            knife_case: { name: 'Ящик с Клинками', price: 750, rarity: 'Covert', item_rarities: ['Exceedingly_Rare', 'Incredible'] }
         };
         
         const DOM = {
@@ -504,12 +545,19 @@
             storeContainer: document.getElementById('content-cases'),
             upgrade: { multiplierSelect: document.getElementById('upgrade-multiplier-select'), chance: document.getElementById('upgrade-chance'), result: document.getElementById('upgrade-result'), fromCard: document.getElementById('upgrade-from-card'), toCard: document.getElementById('upgrade-to-card'), inventoryGrid: document.getElementById('upgrade-inventory-grid'), },
             contract: { inventoryList: document.getElementById('contract-inventory-list'), itemCount: document.getElementById('contract-item-count'), resultRarity: document.getElementById('contract-result-rarity'), button: document.getElementById('contract-button'), resultDisplay: document.getElementById('contract-result-display'), },
-            caseBattle: { selector: document.getElementById('case-battle-selector'), startButton: document.getElementById('case-battle-start-button'), area: document.getElementById('case-battle-area'), playerSpinnerContainer: document.querySelector('#player-battle-area .battle-spinner-container'), opponentSpinnerContainer: document.querySelector('#opponent-battle-area .battle-spinner-container'), playerResult: document.querySelector('#player-battle-area .battle-result-item'), opponentResult: document.querySelector('#opponent-battle-area .battle-result-item'), winner: document.getElementById('case-battle-winner'), }
+            caseBattle: { selector: document.getElementById('case-battle-selector'), startButton: document.getElementById('case-battle-start-button'), area: document.getElementById('case-battle-area'), playerSpinnerContainer: document.querySelector('#player-battle-area .battle-spinner-container'), opponentSpinnerContainer: document.querySelector('#opponent-battle-area .battle-spinner-container'), playerResult: document.querySelector('#player-battle-area .battle-result-item'), opponentResult: document.querySelector('#opponent-battle-area .battle-result-item'), winner: document.getElementById('case-battle-winner'), },
+            admin: {
+                playerList: document.getElementById('admin-player-list'),
+                giveMoneyId: document.getElementById('admin-give-money-id'),
+                giveMoneyAmount: document.getElementById('admin-give-money-amount'),
+                giveCaseId: document.getElementById('admin-give-case-id'),
+                giveCaseSelect: document.getElementById('admin-give-case-select'),
+            }
         };
         
         // --- УПРАВЛЕНИЕ СОСТОЯНИЕМ И UI ---
         function loadState() { 
-            const saved = localStorage.getItem('caseRoyaleState_v10'); 
+            const saved = localStorage.getItem('caseRoyaleState_v11'); 
             if(saved) {
                 const loadedState = JSON.parse(saved);
                 state = { ...defaultState, ...loadedState, settings: {...defaultState.settings, ...loadedState.settings} };
@@ -518,12 +566,13 @@
             }
             applySettings();
             updateUI(); 
+            initAdminPanel();
         }
-        function saveState() { localStorage.setItem('caseRoyaleState_v10', JSON.stringify(state)); }
+        function saveState() { localStorage.setItem('caseRoyaleState_v11', JSON.stringify(state)); }
 
         function resetProgress() {
             soundEngine.play('error');
-            localStorage.removeItem('caseRoyaleState_v10');
+            localStorage.removeItem('caseRoyaleState_v11');
             state = JSON.parse(JSON.stringify(defaultState));
             upgradeState = { selectedIndex: null };
             contractState = { selectedIndices: [] };
@@ -915,8 +964,17 @@
             const indices = contractState.selectedIndices.sort((a,b) => b-a);
             const firstRarity = state.items[indices[0]].rarity;
             const currentLevel = RARITIES[firstRarity].level;
-            const resultLevel = currentLevel + 1;
-            const resultRarityKey = Object.keys(RARITIES).find(key => RARITIES[key].level === resultLevel) || firstRarity;
+            
+            let resultLevel = currentLevel + 1;
+            // 20% chance for a +2 level upgrade
+            if (Math.random() < 0.20) {
+                resultLevel = currentLevel + 2;
+            }
+
+            const resultRarityKey = Object.keys(RARITIES).find(key => RARITIES[key].level === resultLevel) || 
+                                  Object.keys(RARITIES).find(key => RARITIES[key].level === currentLevel + 1) || 
+                                  firstRarity;
+
             const possibleResultSkins = ALL_SKINS.filter(s => s.rarity === resultRarityKey);
             if(possibleResultSkins.length === 0) {
                 soundEngine.play('error');
@@ -949,9 +1007,8 @@
             }
             if (!caseBattleState.selectedCaseId || !state.cases[caseBattleState.selectedCaseId]) {
                  caseBattleState.selectedCaseId = ownedCaseIds[0] || null;
-                 if(ownedCaseIds.length > 0 && !selector.querySelector('.selected')) {
-                    // This can happen if the previously selected case was the last one used up
-                    updateCaseBattleTab();
+                 if(ownedCaseIds.length > 0) {
+                     updateCaseBattleTab();
                  }
             }
             DOM.caseBattle.startButton.disabled = !caseBattleState.selectedCaseId;
@@ -1032,7 +1089,12 @@
         const closeModal = (modalId) => { document.getElementById(modalId).style.display = 'none'; }
         const switchTab = (tabName) => {
             soundEngine.play('ui_click');
-            ['cases', 'games', 'inventory', 'settings'].forEach(id => { document.getElementById(`content-${id}`).style.display = 'none'; document.getElementById(`tab-${id}`).classList.remove('active'); });
+            ['cases', 'games', 'inventory', 'settings', 'admin'].forEach(id => { 
+                const tab = document.getElementById(`tab-${id}`);
+                const content = document.getElementById(`content-${id}`);
+                if(content) content.style.display = 'none'; 
+                if(tab) tab.classList.remove('active'); 
+            });
             document.getElementById(`content-${tabName}`).style.display = 'block'; document.getElementById(`tab-${tabName}`).classList.add('active');
         };
         const switchGame = (gameName) => {
@@ -1045,7 +1107,7 @@
         }
         const openCaseLogic = (caseId) => {
             const caseData = CASES_DATA[caseId];
-            const chances = [ {r: 'Mil_Spec', c: 79.92}, {r: 'Restricted', c: 15.98}, {r: 'Classified', c: 3.2}, {r: 'Covert', c: 0.64}, {r: 'Exceedingly_Rare', c: 0.26} ];
+            const chances = [ {r: 'Mil_Spec', c: 79.92}, {r: 'Restricted', c: 15.98}, {r: 'Classified', c: 3.2}, {r: 'Covert', c: 0.64}, {r: 'Exceedingly_Rare', c: 0.26}, {r: 'Incredible', c: 0.01} ];
             const possible = chances.filter(ch => caseData.item_rarities.includes(ch.r));
             const totalChance = possible.reduce((sum, r) => sum + r.c, 0); const random = Math.random() * totalChance;
             let cumulative = 0; let chosenRarity = possible[0].r;
@@ -1062,6 +1124,73 @@
             const itemsInCase = ALL_SKINS.filter(skin => caseData.item_rarities.includes(skin.rarity)).sort((a,b) => RARITIES[b.rarity].level - RARITIES[a.rarity].level);
             contentDiv.innerHTML = itemsInCase.map(item => { const rarityColor = RARITIES[item.rarity].color; return `<div class="p-2 rounded flex items-center gap-3" style="border-left: 4px solid ${rarityColor}; background-color: rgba(255,255,255,0.05);"><span class="font-semibold" style="color: ${rarityColor}">${item.name}</span></div>`; }).join('');
             modal.style.display = 'flex';
+        }
+
+        // --- ADMIN PANEL LOGIC ---
+        // Simulated player database - in a real app, this would be fetched from a server.
+        let simulatedPlayers = [
+            { id: 123456, name: "PlayerOne", balance: 150.75 },
+            { id: 789012, name: "CoolGamer", balance: 25.50 },
+            { id: 1388045673, name: "AdminUser", balance: 99999 },
+            { id: 345678, name: "Newbie", balance: 5.00 },
+        ];
+        
+        function initAdminPanel(){
+            const adminId = 1388045673;
+            // Use tg.initDataUnsafe.user.id for real check
+            const currentUserId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+            
+            if(currentUserId === adminId) {
+                document.getElementById('tab-admin').classList.remove('hidden');
+                document.querySelector('#main-nav').style.gridTemplateColumns = 'repeat(5, 1fr)';
+                populateAdminCaseSelect();
+                renderAdminPlayerList();
+            }
+        }
+
+        function populateAdminCaseSelect() {
+            DOM.admin.giveCaseSelect.innerHTML = Object.entries(CASES_DATA)
+                .map(([id, data]) => `<option value="${id}">${data.name}</option>`)
+                .join('');
+        }
+
+        function renderAdminPlayerList() {
+            DOM.admin.playerList.innerHTML = simulatedPlayers.map(player => `
+                <div class="p-2 rounded-lg flex justify-between items-center" style="background-color: var(--bg-tertiary);">
+                    <div>
+                        <p class="font-semibold">${player.name}</p>
+                        <p class="text-xs" style="color: var(--text-secondary);">ID: ${player.id}</p>
+                    </div>
+                    <p class="font-bold text-green-400">$${player.balance.toFixed(2)}</p>
+                </div>
+            `).join('');
+        }
+        
+        function adminGiveMoney() {
+            const playerId = parseInt(DOM.admin.giveMoneyId.value);
+            const amount = parseFloat(DOM.admin.giveMoneyAmount.value);
+
+            if(isNaN(playerId) || isNaN(amount) || amount <= 0) {
+                alert("Неверный ID игрока или сумма."); return;
+            }
+
+            const player = simulatedPlayers.find(p => p.id === playerId);
+            if(player) {
+                player.balance += amount;
+                renderAdminPlayerList();
+                alert(`Игроку ${player.name} выдано $${amount}.`);
+            } else {
+                alert("Игрок с таким ID не найден.");
+            }
+        }
+
+        function adminGiveCase() {
+            const playerId = parseInt(DOM.admin.giveCaseId.value);
+            const caseId = DOM.admin.giveCaseSelect.value;
+            if (isNaN(playerId) || !caseId) {
+                 alert("Неверный ID игрока или не выбран кейс."); return;
+            }
+            alert(`Кейс "${CASES_DATA[caseId].name}" выдан игроку с ID ${playerId}. (симуляция)`);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
