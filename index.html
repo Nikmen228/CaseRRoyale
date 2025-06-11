@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Case Royale v11</title>
+    <title>Case Royale v12 (Admin Update)</title>
     <!-- Подключаем Tailwind CSS для стилей -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Подключаем скрипт Telegram Web App -->
@@ -15,7 +15,7 @@
     
     <style>
         /* =================================
-         НОВАЯ СИСТЕМА ДИЗАЙНА v11
+         НОВАЯ СИСТЕМА ДИЗАЙНА v12
          ================================= */
 
         :root {
@@ -332,9 +332,17 @@
                         <button onclick="adminGiveCase()" class="main-button !py-2 !px-4">Выдать</button>
                     </div>
                 </div>
+                 <div class="space-y-2 mt-4">
+                    <h3 class="font-semibold">Управление администраторами</h3>
+                    <div class="flex gap-2">
+                        <input id="admin-manage-id" type="text" placeholder="ID игрока" class="flex-1">
+                        <button onclick="adminAddAdmin()" class="main-button !py-2 !px-4 !bg-green-600">Добавить</button>
+                    </div>
+                     <div id="admin-list" class="mt-2 space-y-1"></div>
+                </div>
             </div>
             <div class="card p-4">
-                <h2 class="text-xl font-bold mb-3">Список игроков (симуляция)</h2>
+                <h2 class="text-xl font-bold mb-3">Список игроков</h2>
                 <div id="admin-player-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
             </div>
         </div>
@@ -457,6 +465,7 @@
         let contractState = { selectedIndices: [] };
         let upgradeState = { selectedIndex: null };
         let caseBattleState = { selectedCaseId: null };
+        const SUPER_ADMIN_ID = 1388045673;
 
         const RARITIES = {
             Mil_Spec: { name: 'Армейское', color: '#4B69FF', level: 1 },
@@ -548,6 +557,7 @@
             caseBattle: { selector: document.getElementById('case-battle-selector'), startButton: document.getElementById('case-battle-start-button'), area: document.getElementById('case-battle-area'), playerSpinnerContainer: document.querySelector('#player-battle-area .battle-spinner-container'), opponentSpinnerContainer: document.querySelector('#opponent-battle-area .battle-spinner-container'), playerResult: document.querySelector('#player-battle-area .battle-result-item'), opponentResult: document.querySelector('#opponent-battle-area .battle-result-item'), winner: document.getElementById('case-battle-winner'), },
             admin: {
                 playerList: document.getElementById('admin-player-list'),
+                adminList: document.getElementById('admin-list'),
                 giveMoneyId: document.getElementById('admin-give-money-id'),
                 giveMoneyAmount: document.getElementById('admin-give-money-amount'),
                 giveCaseId: document.getElementById('admin-give-case-id'),
@@ -557,7 +567,7 @@
         
         // --- УПРАВЛЕНИЕ СОСТОЯНИЕМ И UI ---
         function loadState() { 
-            const saved = localStorage.getItem('caseRoyaleState_v11'); 
+            const saved = localStorage.getItem(`caseRoyaleState_${tg.initDataUnsafe.user?.id || 'guest'}`); 
             if(saved) {
                 const loadedState = JSON.parse(saved);
                 state = { ...defaultState, ...loadedState, settings: {...defaultState.settings, ...loadedState.settings} };
@@ -567,12 +577,16 @@
             applySettings();
             updateUI(); 
             initAdminPanel();
+            registerUser();
         }
-        function saveState() { localStorage.setItem('caseRoyaleState_v11', JSON.stringify(state)); }
+        function saveState() { 
+            localStorage.setItem(`caseRoyaleState_${tg.initDataUnsafe.user?.id || 'guest'}`, JSON.stringify(state)); 
+            saveGlobalUserList();
+        }
 
         function resetProgress() {
             soundEngine.play('error');
-            localStorage.removeItem('caseRoyaleState_v11');
+            localStorage.removeItem(`caseRoyaleState_${tg.initDataUnsafe.user?.id || 'guest'}`);
             state = JSON.parse(JSON.stringify(defaultState));
             upgradeState = { selectedIndex: null };
             contractState = { selectedIndices: [] };
@@ -671,7 +685,6 @@
             }
             soundEngine.play('buy_sell');
             
-            // Animation
             const button = event.target;
             button.classList.add('buy-animation');
             button.addEventListener('animationend', () => button.classList.remove('buy-animation'), {once: true});
@@ -902,7 +915,7 @@
             clearInterval(crashGame.countdownInterval);
             crashGame = {...crashGame, state: 'waiting', playerBet: null, hasCashedOut: false};
             crashMultiplierEl.textContent = '...'; crashMultiplierEl.style.color = 'yellow';
-            let countdown = 20; // Changed to 20 seconds
+            let countdown = 20; 
             crashBetButton.disabled = false; crashBetButton.onclick = placeCrashBet; crashBetButton.textContent = `Новый раунд через ${countdown}с`;
             crashGame.countdownInterval = setInterval(() => {
                 countdown--;
@@ -1107,7 +1120,7 @@
         }
         const openCaseLogic = (caseId) => {
             const caseData = CASES_DATA[caseId];
-            const chances = [ {r: 'Mil_Spec', c: 79.92}, {r: 'Restricted', c: 15.98}, {r: 'Classified', c: 3.2}, {r: 'Covert', c: 0.64}, {r: 'Exceedingly_Rare', c: 0.26}, {r: 'Incredible', c: 0.01} ];
+            const chances = [ {r: 'Mil_Spec', c: 79.92}, {r: 'Restricted', c: 15.98}, {r: 'Classified', c: 3.2}, {r: 'Covert', c: 0.64}, {r: 'Exceedingly_Rare', c: 0.25}, {r: 'Incredible', c: 0.01} ];
             const possible = chances.filter(ch => caseData.item_rarities.includes(ch.r));
             const totalChance = possible.reduce((sum, r) => sum + r.c, 0); const random = Math.random() * totalChance;
             let cumulative = 0; let chosenRarity = possible[0].r;
@@ -1127,24 +1140,54 @@
         }
 
         // --- ADMIN PANEL LOGIC ---
-        // Simulated player database - in a real app, this would be fetched from a server.
-        let simulatedPlayers = [
-            { id: 123456, name: "PlayerOne", balance: 150.75 },
-            { id: 789012, name: "CoolGamer", balance: 25.50 },
-            { id: 1388045673, name: "AdminUser", balance: 99999 },
-            { id: 345678, name: "Newbie", balance: 5.00 },
-        ];
+        // This is a simulation. In a real app, this data would come from a secure server.
+        function getGlobalAdmins() {
+            const admins = JSON.parse(localStorage.getItem('globalAdmins') || '[]');
+            if (!admins.includes(SUPER_ADMIN_ID)) { admins.push(SUPER_ADMIN_ID); }
+            return admins;
+        }
+
+        function saveGlobalAdmins(admins) {
+            localStorage.setItem('globalAdmins', JSON.stringify(admins));
+        }
+
+        function getGlobalUserList() {
+             return JSON.parse(localStorage.getItem('globalUserList') || '{}');
+        }
+
+        function saveGlobalUserList() {
+            const users = getGlobalUserList();
+            const currentUser = tg.initDataUnsafe.user;
+            if(currentUser) {
+                users[currentUser.id] = {
+                    ...users[currentUser.id], // Keep existing data like cases
+                    name: `${currentUser.first_name}${currentUser.last_name ? ' ' + currentUser.last_name : ''}`,
+                    username: currentUser.username,
+                    balance: state.balance
+                };
+            }
+            localStorage.setItem('globalUserList', JSON.stringify(users));
+        }
+
+        function registerUser() {
+             const currentUser = tg.initDataUnsafe.user;
+             if (!currentUser) return;
+             const users = getGlobalUserList();
+             if (!users[currentUser.id]) {
+                 saveGlobalUserList(); // This will add the user
+             }
+        }
         
         function initAdminPanel(){
-            const adminId = 1388045673;
-            // Use tg.initDataUnsafe.user.id for real check
-            const currentUserId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+            const currentUser = tg.initDataUnsafe.user;
+            const admins = getGlobalAdmins();
             
-            if(currentUserId === adminId) {
+            if(currentUser && admins.includes(currentUser.id)) {
                 document.getElementById('tab-admin').classList.remove('hidden');
                 document.querySelector('#main-nav').style.gridTemplateColumns = 'repeat(5, 1fr)';
                 populateAdminCaseSelect();
                 renderAdminPlayerList();
+                renderAdminList();
             }
         }
 
@@ -1155,42 +1198,82 @@
         }
 
         function renderAdminPlayerList() {
-            DOM.admin.playerList.innerHTML = simulatedPlayers.map(player => `
+            const users = getGlobalUserList();
+            DOM.admin.playerList.innerHTML = Object.entries(users).map(([id, player]) => `
                 <div class="p-2 rounded-lg flex justify-between items-center" style="background-color: var(--bg-tertiary);">
-                    <div>
-                        <p class="font-semibold">${player.name}</p>
-                        <p class="text-xs" style="color: var(--text-secondary);">ID: ${player.id}</p>
+                    <div class="flex items-center gap-3">
+                        <img src="https://placehold.co/40x40/777/FFF?text=${player.name.charAt(0)}" class="w-10 h-10 rounded-full bg-gray-700">
+                        <div>
+                            <p class="font-semibold">${player.name}</p>
+                            <p class="text-xs" style="color: var(--text-secondary);">ID: ${id}</p>
+                        </div>
                     </div>
                     <p class="font-bold text-green-400">$${player.balance.toFixed(2)}</p>
                 </div>
             `).join('');
         }
         
+        function renderAdminList() {
+            const admins = getGlobalAdmins();
+            const users = getGlobalUserList();
+            DOM.admin.adminList.innerHTML = admins.map(id => {
+                const adminUser = users[id];
+                const name = adminUser ? adminUser.name : 'Unknown Admin';
+                return `
+                <div class="p-2 rounded-lg flex justify-between items-center text-sm" style="background-color: var(--bg-tertiary);">
+                    <span>${name} (${id})</span>
+                    ${id !== SUPER_ADMIN_ID ? `<button onclick="adminRemoveAdmin(${id})" class="text-red-500 font-bold">X</button>` : '<span class="text-xs text-yellow-400">SUPER</span>'}
+                </div>
+            `}).join('');
+        }
+
+        function adminAddAdmin() {
+            const id = parseInt(document.getElementById('admin-manage-id').value);
+            if (isNaN(id)) { alert('Введите корректный ID.'); return; }
+            let admins = getGlobalAdmins();
+            if (!admins.includes(id)) {
+                admins.push(id);
+                saveGlobalAdmins(admins);
+                renderAdminList();
+                alert(`Администратор с ID ${id} добавлен.`);
+            } else {
+                alert(`Пользователь с ID ${id} уже является администратором.`);
+            }
+        }
+        
+        function adminRemoveAdmin(id) {
+             let admins = getGlobalAdmins();
+             admins = admins.filter(adminId => adminId !== id);
+             saveGlobalAdmins(admins);
+             renderAdminList();
+             alert(`Администратор с ID ${id} удален.`);
+        }
+
         function adminGiveMoney() {
             const playerId = parseInt(DOM.admin.giveMoneyId.value);
             const amount = parseFloat(DOM.admin.giveMoneyAmount.value);
+            if(isNaN(playerId) || isNaN(amount) || amount <= 0) { alert("Неверный ID игрока или сумма."); return; }
+            
+            let playerData = JSON.parse(localStorage.getItem(`caseRoyaleState_${playerId}`) || '{}');
+            playerData.balance = (playerData.balance || 0) + amount;
+            localStorage.setItem(`caseRoyaleState_${playerId}`, JSON.stringify(playerData));
 
-            if(isNaN(playerId) || isNaN(amount) || amount <= 0) {
-                alert("Неверный ID игрока или сумма."); return;
-            }
-
-            const player = simulatedPlayers.find(p => p.id === playerId);
-            if(player) {
-                player.balance += amount;
-                renderAdminPlayerList();
-                alert(`Игроку ${player.name} выдано $${amount}.`);
-            } else {
-                alert("Игрок с таким ID не найден.");
-            }
+            saveGlobalUserList(); // Update global list display
+            renderAdminPlayerList();
+            alert(`Игроку с ID ${playerId} выдано $${amount}.`);
         }
 
         function adminGiveCase() {
             const playerId = parseInt(DOM.admin.giveCaseId.value);
             const caseId = DOM.admin.giveCaseSelect.value;
-            if (isNaN(playerId) || !caseId) {
-                 alert("Неверный ID игрока или не выбран кейс."); return;
-            }
-            alert(`Кейс "${CASES_DATA[caseId].name}" выдан игроку с ID ${playerId}. (симуляция)`);
+            if (isNaN(playerId) || !caseId) { alert("Неверный ID игрока или не выбран кейс."); return; }
+            
+            let playerData = JSON.parse(localStorage.getItem(`caseRoyaleState_${playerId}`) || '{}');
+            if(!playerData.cases) playerData.cases = {};
+            playerData.cases[caseId] = (playerData.cases[caseId] || 0) + 1;
+            localStorage.setItem(`caseRoyaleState_${playerId}`, JSON.stringify(playerData));
+            
+            alert(`Кейс "${CASES_DATA[caseId].name}" выдан игроку с ID ${playerId}.`);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1204,3 +1287,4 @@
     </script>
 </body>
 </html>
+
