@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CS:GO Case Opener</title>
+    <!-- Подключаем Tailwind CSS для стилей -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключаем скрипт Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Стили для кастомной темы Telegram */
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #181c21);
+            --text-color: var(--tg-theme-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #aaaaaa);
+            --button-color: var(--tg-theme-button-color, #5288c1);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #2a2d32);
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .case-card {
+            background-color: var(--secondary-bg-color);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .action-button {
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .action-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Стили для модального окна и рулетки */
+        #roulette-modal {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        #roulette-container {
+            width: 100%;
+            overflow: hidden;
+            border-top: 2px solid var(--button-color);
+            border-bottom: 2px solid var(--button-color);
+        }
+        #roulette-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(rgba(255,255,255,0), var(--button-text-color), rgba(255,255,255,0));
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        #roulette-spinner {
+            display: flex;
+            transition: transform 5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .roulette-item {
+            flex-shrink: 0;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+            background-size: cover;
+            text-align: center;
+        }
+        .roulette-item-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+        /* Цвета редкости для рулетки */
+        .rarity-Common { background-color: #3d424b; }
+        .rarity-Uncommon { background-color: #4a6a8b; }
+        .rarity-Rare { background-color: #5d4a8b; }
+        .rarity-Mythical { background-color: #8b4a78; }
+        .rarity-Legendary { background-color: #a44e4e; }
+        .rarity-Ancient { background-color: #daa520; }
+    </style>
+</head>
+<body class="antialiased p-4">
+
+    <!-- Основной контент -->
+    <div id="main-content" class="w-full max-w-lg mx-auto">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold">Case Opener</h1>
+            <p id="user-greeting" class="text-lg" style="color: var(--hint-color);">Загрузка...</p>
+        </div>
+
+        <div class="space-y-5">
+            <!-- Гамма-кейс -->
+            <div class="case-card p-5 rounded-xl shadow-lg" onclick="prepareAndOpenCase('gamma')">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-semibold">Гамма-кейс</h2>
+                        <p class="text-sm" style="color: var(--hint-color);">Шанс на эксклюзивные ножи</p>
+                    </div>
+                    <img src="https://placehold.co/80x80/2a2d32/ffffff?text=📦" class="rounded-lg" alt="Изображение кейса">
+                </div>
+            </div>
+
+            <!-- Хромированный кейс 3 -->
+            <div class="case-card p-5 rounded-xl shadow-lg" onclick="prepareAndOpenCase('chroma')">
+                 <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-semibold">Хромированный кейс 3</h2>
+                        <p class="text-sm" style="color: var(--hint-color);">Содержит ценные скины</p>
+                    </div>
+                    <img src="https://placehold.co/80x80/2a2d32/ffffff?text=📦" class="rounded-lg" alt="Изображение кейса">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно с рулеткой -->
+    <div id="roulette-modal" class="fixed inset-0 z-50 flex-col items-center justify-center p-4 hidden">
+        <div class="w-full max-w-lg mx-auto">
+             <h2 id="modal-title" class="text-2xl font-bold text-center mb-4">Открытие кейса...</h2>
+            <div id="roulette-container" class="relative">
+                <div id="roulette-spinner"></div>
+                <div id="roulette-line"></div>
+            </div>
+        </div>
+        <!-- Область результата -->
+        <div id="result-display" class="text-center mt-6 hidden">
+            <h3 class="text-xl font-bold">Вам выпало:</h3>
+            <p id="result-item-name" class="text-3xl font-bold"></p>
+            <p id="result-item-price" class="text-lg" style="color: var(--hint-color);"></p>
+            <button onclick="closeModal()" class="action-button font-bold py-2 px-6 rounded-lg mt-4">Отлично!</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // Растягиваем приложение на весь экран
+
+        // --- ДАННЫЕ ИГРЫ (КЛИЕНТСКАЯ СТОРОНА) ---
+        const CASES_DATA = {
+            gamma: { name: 'Гамма-кейс', items: [
+                {name: 'Five-SeveN | Капилляры', rarity: 'Rare', price: 7.50}, {name: 'MAC-10 | Последнее погружение', rarity: 'Uncommon', price: 1.20}, {name: 'M4A4 | Тусклый блеск', rarity: 'Mythical', price: 15.00}, {name: 'UMP-45 | Механо-пушка', rarity: 'Uncommon', price: 1.15}, {name: 'Glock-18 | Пустошь', rarity: 'Legendary', price: 80.00}, {name: 'SCAR-20 | Кровавый спорт', rarity: 'Mythical', price: 18.50}, {name: 'AWP | Скоростной зверь', rarity: 'Legendary', price: 120.00}, {name: 'M4A1-S | Механо-пушка', rarity: 'Legendary', price: 95.00}, {name: 'Гамма-ножи', rarity: 'Ancient', price: 450.00}
+            ]},
+            chroma: { name: 'Хромированный кейс 3', items: [
+                {name: 'P250 | Валентность', rarity: 'Rare', price: 5.00}, {name: 'UMP-45 | Гран-при', rarity: 'Uncommon', price: 0.90}, {name: 'CZ75-Auto | Полимер', rarity: 'Rare', price: 4.50}, {name: 'Galil AR | Щелкунчик', rarity: 'Mythical', price: 25.00}, {name: 'M4A1-S | Огонь шантико', rarity: 'Legendary', price: 150.00}, {name: 'PP-Bizon | Суд Анубиса', rarity: 'Mythical', price: 22.00}, {name: 'SSG 08 | Призрачный фанатик', rarity: 'Rare', price: 6.00}, {name: 'Tec-9 | Топливный инжектор', rarity: 'Mythical', price: 30.00}, {name: 'Ножи ★', rarity: 'Ancient', price: 500.00}
+            ]}
+        };
+        
+        // --- ЭЛЕМЕНТЫ DOM ---
+        const userGreeting = document.getElementById('user-greeting');
+        const modal = document.getElementById('roulette-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const spinner = document.getElementById('roulette-spinner');
+        const resultDisplay = document.getElementById('result-display');
+        const resultItemName = document.getElementById('result-item-name');
+        const resultItemPrice = document.getElementById('result-item-price');
+
+        // --- ИНИЦИАЛИЗАЦИЯ ---
+        if (tg.initDataUnsafe.user) {
+            userGreeting.textContent = `Привет, ${tg.initDataUnsafe.user.first_name}!`;
+        } else {
+            userGreeting.textContent = 'Привет, игрок!';
+        }
+
+        function prepareAndOpenCase(caseId) {
+            // В реальном приложении здесь будет проверка, есть ли у пользователя кейс
+            // Для этого нужно получить данные от бота
+            
+            // Отправляем данные боту, что мы хотим открыть кейс
+            // Бот должен обработать это, списать кейс и прислать ответ.
+            // Пока что мы имитируем это на клиенте.
+            tg.sendData(JSON.stringify({ action: "attempt_open", caseId: caseId }));
+            
+            const caseData = CASES_DATA[caseId];
+            modalTitle.textContent = `Открытие: ${caseData.name}`;
+            
+            // Генерируем рулетку
+            let rouletteItems = [];
+            for (let i = 0; i < 50; i++) {
+                rouletteItems.push(caseData.items[Math.floor(Math.random() * caseData.items.length)]);
+            }
+
+            // Выбираем выигрышный предмет (логика из бота)
+            const chances = caseData.items.map(item => ({...item, weight: getWeightByRarity(item.rarity)}));
+            const totalWeight = chances.reduce((sum, item) => sum + item.weight, 0);
+            let random = Math.random() * totalWeight;
+            let winningItem = chances[chances.length - 1];
+            for (const item of chances) {
+                if (random < item.weight) {
+                    winningItem = item;
+                    break;
+                }
+                random -= item.weight;
+            }
+            
+            // Вставляем выигрышный предмет в рулетку на 45-е место
+            rouletteItems[45] = winningItem;
+
+            spinner.innerHTML = rouletteItems.map(item => `
+                <div class="roulette-item rarity-${item.rarity}">
+                    <div class="roulette-item-name text-white">${item.name}</div>
+                </div>
+            `).join('');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Запускаем рулетку
+            setTimeout(() => runRoulette(winningItem), 100);
+        }
+
+        function getWeightByRarity(rarity) {
+            // Примерные веса, обратные шансам
+            switch(rarity) {
+                case 'Ancient': return 1;
+                case 'Legendary': return 5;
+                case 'Mythical': return 10;
+                case 'Rare': return 50;
+                case 'Uncommon': return 250;
+                default: return 1000;
+            }
+        }
+
+        function runRoulette(winningItem) {
+            spinner.style.transition = 'none';
+            spinner.style.transform = 'translateX(0)';
+            
+            setTimeout(() => {
+                spinner.style.transition = 'transform 5s cubic-bezier(0.1, 0.7, 0.3, 1)';
+                // 45 - позиция выигрышного предмета, 120 - ширина элемента
+                // Смещение на половину, чтобы центрировать
+                const targetPosition = (45 * 120) - (modal.clientWidth / 2) + 60;
+                const randomOffset = (Math.random() - 0.5) * 100; // Добавляем случайности
+                spinner.style.transform = `translateX(-${targetPosition + randomOffset}px)`;
+            }, 100);
+
+            // Показываем результат после анимации
+            setTimeout(() => showResult(winningItem), 5500);
+        }
+
+        function showResult(item) {
+            resultItemName.textContent = item.name;
+            resultItemPrice.textContent = `Стоимость: $${item.price.toFixed(2)}`;
+            resultItemName.className = `text-3xl font-bold rarity-text-${item.rarity}`;
+            resultDisplay.classList.remove('hidden');
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            resultDisplay.classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
