@@ -1537,13 +1537,7 @@
                      <option value="mobile">Телефон</option>
                    </select>
                  </div>
-                 <div class="flex justify-between items-center py-4">
-                     <span class="font-semibold">Тема</span>
-                     <div class="flex gap-2">
-                         <button id="theme-dark-btn" class="secondary-button py-1 px-3">🌑 Ночь</button>
-                         <button id="theme-neon-btn" class="secondary-button py-1 px-3">💡 Неон</button>
-                     </div>
-                 </div>
+
              </div>
         </div>
 
@@ -2256,6 +2250,8 @@
                 document.body.classList.remove('device-pc');
                 document.documentElement.style.setProperty('--ui-scale', 1);
             }
+            // --- Важно: всегда инициализировать админку после применения настроек ---
+            initAdminPanel();
         }
         
         function toggleSound() {
@@ -3029,9 +3025,11 @@
 
         // --- КАСТОМНАЯ ТЕМА ---
         function setTheme(theme) {
-          document.body.classList.remove('theme-neon');
+          document.body.classList.remove('theme-neon', 'theme-dark');
           if (theme === 'neon') document.body.classList.add('theme-neon');
-          // 'dark' — это дефолт, ничего не добавляем
+          else document.body.classList.add('theme-dark');
+          // Обновить кнопки
+          if (typeof updateThemeButtons === 'function') updateThemeButtons();
         }
         // Пример: setTheme('neon');
 
