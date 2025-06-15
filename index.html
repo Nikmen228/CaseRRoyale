@@ -202,30 +202,33 @@
         
         /* Game mode switcher animation */
         .game-mode-switcher {
+            position: relative;
             display: flex;
             background-color: var(--bg-tertiary);
             border-radius: 50px;
             padding: 4px;
             margin: 0 auto 20px;
             max-width: 300px;
-            position: relative;
             overflow: hidden;
         }
-        .game-mode-switcher::before {
-            content: '';
+        .game-mode-switcher .switcher-active-bg {
             position: absolute;
             top: 4px;
             left: 4px;
             width: calc(50% - 4px);
             height: calc(100% - 8px);
-            background: var(--accent-primary);
+            background: linear-gradient(90deg, #4b69ff 60%, #6a8cff 100%);
             border-radius: 50px;
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             z-index: 0;
+            transition: transform 0.45s cubic-bezier(.68,-0.55,.27,1.55);
+            box-shadow: 0 2px 16px #4b69ff55;
         }
-        .game-mode-switcher.csgo::before { transform: translateX(0); }
-        .game-mode-switcher.standoff::before { transform: translateX(calc(100% + 4px)); }
-
+        .game-mode-switcher.csgo .switcher-active-bg {
+            transform: translateX(0);
+        }
+        .game-mode-switcher.standoff .switcher-active-bg {
+            transform: translateX(100%);
+        }
         .game-mode-btn {
             flex: 1;
             padding: 10px 15px;
@@ -237,6 +240,7 @@
             border-radius: 50px;
             transition: color 0.3s ease;
             color: var(--text-secondary);
+            background: none;
         }
         .game-mode-btn.active { color: white; }
         
@@ -319,38 +323,51 @@
         }
 
         body.so2-theme {
-          --bg-primary: var(--so2-primary);
-          --bg-secondary: var(--so2-secondary);
-          --bg-tertiary: var(--so2-tertiary);
-          --accent-primary: var(--so2-accent);
-          --accent-primary-hover: #b92d3a;
-          --border-color: var(--so2-accent);
+          --bg-primary: #181c2a;
+          --bg-secondary: #23273a;
+          --bg-tertiary: #23243a;
+          --accent-primary: #4b69ff;
+          --accent-secondary: #ff9800;
+          --accent-green: #28a745;
+          --accent-red: #e94560;
+          --border-color: #353941;
+          --text-primary: #eaecef;
+          --text-secondary: #8e9297;
+          font-family: 'Orbitron', 'Inter', sans-serif !important;
+          background: #181c2a !important;
         }
-        body.so2-theme #crash-graph-container {
-          background: var(--so2-secondary);
-          border: 2px solid var(--so2-accent);
+        body.so2-theme .card, body.so2-theme .modal-content {
+          background: #23243a;
+          border: 1px solid #353941;
         }
-        body.so2-theme #crash-history-bar .history-chip {
-          background: var(--so2-accent)22 !important;
-          color: var(--so2-accent) !important;
-          border: 1px solid var(--so2-accent)80 !important;
-        }
-        body.so2-theme #crash-multiplier-display {
-          color: var(--so2-gold);
-          text-shadow: 0 0 15px var(--so2-gold)99;
+        body.so2-theme .main-button, body.so2-theme .secondary-button {
+          background: #23273a;
+          color: #eaecef;
+          border: 1px solid #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
         }
         body.so2-theme .main-button {
-          background: linear-gradient(45deg, var(--so2-accent), #ff6b6b);
+          background: #4b69ff;
+          color: #fff;
         }
-        body.so2-theme .card {
-          background: linear-gradient(135deg, var(--so2-secondary), var(--so2-tertiary));
-          border-color: var(--so2-accent);
+        body.so2-theme .nav-button {
+          background: #23243a;
+          color: #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
         }
-        body.so2-theme input[type=number] {
-          background: var(--so2-tertiary);
-          border-color: var(--so2-accent);
-          color: var(--so2-gold);
+        body.so2-theme .nav-button.active {
+          background: #4b69ff;
+          color: #fff;
         }
+        body.so2-theme #main-nav,
+        body.so2-theme #main-content,
+        body.so2-theme #header-card,
+        body.so2-theme .game-mode-switcher,
+        body.so2-theme .so2-action-bar,
+        body.so2-theme .so2-action-bar .main-button {
+          /* Удалены все параметры размеров и позиционирования */
+        }
+        /* Остальные специфические стили для so2-theme, связанные с размерами, также удалены */
 
         /* Новый интерфейс сапёра */
         #game-content-mines {
@@ -524,30 +541,33 @@
         
         /* Game mode switcher animation */
         .game-mode-switcher {
-            display: flex;
+            position: relative;
+          display: flex;
             background-color: var(--bg-tertiary);
             border-radius: 50px;
             padding: 4px;
             margin: 0 auto 20px;
             max-width: 300px;
-            position: relative;
             overflow: hidden;
         }
-        .game-mode-switcher::before {
-            content: '';
+        .game-mode-switcher .switcher-active-bg {
             position: absolute;
             top: 4px;
             left: 4px;
             width: calc(50% - 4px);
             height: calc(100% - 8px);
-            background: var(--accent-primary);
+            background: linear-gradient(90deg, #4b69ff 60%, #6a8cff 100%);
             border-radius: 50px;
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             z-index: 0;
+            transition: transform 0.45s cubic-bezier(.68,-0.55,.27,1.55);
+            box-shadow: 0 2px 16px #4b69ff55;
         }
-        .game-mode-switcher.csgo::before { transform: translateX(0); }
-        .game-mode-switcher.standoff::before { transform: translateX(calc(100% + 4px)); }
-
+        .game-mode-switcher.csgo .switcher-active-bg {
+            transform: translateX(0);
+        }
+        .game-mode-switcher.standoff .switcher-active-bg {
+            transform: translateX(100%);
+        }
         .game-mode-btn {
             flex: 1;
             padding: 10px 15px;
@@ -559,6 +579,7 @@
             border-radius: 50px;
             transition: color 0.3s ease;
             color: var(--text-secondary);
+            background: none;
         }
         .game-mode-btn.active { color: white; }
         
@@ -641,38 +662,51 @@
         }
 
         body.so2-theme {
-          --bg-primary: var(--so2-primary);
-          --bg-secondary: var(--so2-secondary);
-          --bg-tertiary: var(--so2-tertiary);
-          --accent-primary: var(--so2-accent);
-          --accent-primary-hover: #b92d3a;
-          --border-color: var(--so2-accent);
+          --bg-primary: #181c2a;
+          --bg-secondary: #23273a;
+          --bg-tertiary: #23243a;
+          --accent-primary: #4b69ff;
+          --accent-secondary: #ff9800;
+          --accent-green: #28a745;
+          --accent-red: #e94560;
+          --border-color: #353941;
+          --text-primary: #eaecef;
+          --text-secondary: #8e9297;
+          font-family: 'Orbitron', 'Inter', sans-serif !important;
+          background: #181c2a !important;
         }
-        body.so2-theme #crash-graph-container {
-          background: var(--so2-secondary);
-          border: 2px solid var(--so2-accent);
+        body.so2-theme .card, body.so2-theme .modal-content {
+          background: #23243a;
+          border: 1px solid #353941;
         }
-        body.so2-theme #crash-history-bar .history-chip {
-          background: var(--so2-accent)22 !important;
-          color: var(--so2-accent) !important;
-          border: 1px solid var(--so2-accent)80 !important;
-        }
-        body.so2-theme #crash-multiplier-display {
-          color: var(--so2-gold);
-          text-shadow: 0 0 15px var(--so2-gold)99;
+        body.so2-theme .main-button, body.so2-theme .secondary-button {
+          background: #23273a;
+          color: #eaecef;
+          border: 1px solid #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
         }
         body.so2-theme .main-button {
-          background: linear-gradient(45deg, var(--so2-accent), #ff6b6b);
+          background: #4b69ff;
+          color: #fff;
         }
-        body.so2-theme .card {
-          background: linear-gradient(135deg, var(--so2-secondary), var(--so2-tertiary));
-          border-color: var(--so2-accent);
+        body.so2-theme .nav-button {
+          background: #23243a;
+          color: #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
         }
-        body.so2-theme input[type=number] {
-          background: var(--so2-tertiary);
-          border-color: var(--so2-accent);
-          color: var(--so2-gold);
+        body.so2-theme .nav-button.active {
+          background: #4b69ff;
+          color: #fff;
         }
+        body.so2-theme #main-nav,
+        body.so2-theme #main-content,
+        body.so2-theme #header-card,
+        body.so2-theme .game-mode-switcher,
+        body.so2-theme .so2-action-bar,
+        body.so2-theme .so2-action-bar .main-button {
+          /* Удалены все параметры размеров и позиционирования */
+        }
+        /* Остальные специфические стили для so2-theme, связанные с размерами, также удалены */
 
         /* Новый интерфейс сапёра */
         #game-content-mines {
@@ -846,30 +880,33 @@
         
         /* Game mode switcher animation */
         .game-mode-switcher {
+            position: relative;
             display: flex;
             background-color: var(--bg-tertiary);
             border-radius: 50px;
             padding: 4px;
             margin: 0 auto 20px;
             max-width: 300px;
-            position: relative;
             overflow: hidden;
         }
-        .game-mode-switcher::before {
-            content: '';
+        .game-mode-switcher .switcher-active-bg {
             position: absolute;
             top: 4px;
             left: 4px;
             width: calc(50% - 4px);
             height: calc(100% - 8px);
-            background: var(--accent-primary);
+            background: linear-gradient(90deg, #4b69ff 60%, #6a8cff 100%);
             border-radius: 50px;
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             z-index: 0;
+            transition: transform 0.45s cubic-bezier(.68,-0.55,.27,1.55);
+            box-shadow: 0 2px 16px #4b69ff55;
         }
-        .game-mode-switcher.csgo::before { transform: translateX(0); }
-        .game-mode-switcher.standoff::before { transform: translateX(calc(100% + 4px)); }
-
+        .game-mode-switcher.csgo .switcher-active-bg {
+            transform: translateX(0);
+        }
+        .game-mode-switcher.standoff .switcher-active-bg {
+            transform: translateX(100%);
+        }
         .game-mode-btn {
             flex: 1;
             padding: 10px 15px;
@@ -881,6 +918,7 @@
             border-radius: 50px;
             transition: color 0.3s ease;
             color: var(--text-secondary);
+            background: none;
         }
         .game-mode-btn.active { color: white; }
         
@@ -963,38 +1001,51 @@
         }
 
         body.so2-theme {
-          --bg-primary: var(--so2-primary);
-          --bg-secondary: var(--so2-secondary);
-          --bg-tertiary: var(--so2-tertiary);
-          --accent-primary: var(--so2-accent);
-          --accent-primary-hover: #b92d3a;
-          --border-color: var(--so2-accent);
+          --bg-primary: #181c2a;
+          --bg-secondary: #23273a;
+          --bg-tertiary: #23243a;
+          --accent-primary: #4b69ff;
+          --accent-secondary: #ff9800;
+          --accent-green: #28a745;
+          --accent-red: #e94560;
+          --border-color: #353941;
+          --text-primary: #eaecef;
+          --text-secondary: #8e9297;
+          font-family: 'Orbitron', 'Inter', sans-serif !important;
+          background: #181c2a !important;
         }
-        body.so2-theme #crash-graph-container {
-          background: var(--so2-secondary);
-          border: 2px solid var(--so2-accent);
+        body.so2-theme .card, body.so2-theme .modal-content {
+          background: #23243a;
+          border: 1px solid #353941;
         }
-        body.so2-theme #crash-history-bar .history-chip {
-          background: var(--so2-accent)22 !important;
-          color: var(--so2-accent) !important;
-          border: 1px solid var(--so2-accent)80 !important;
-        }
-        body.so2-theme #crash-multiplier-display {
-          color: var(--so2-gold);
-          text-shadow: 0 0 15px var(--so2-gold)99;
+        body.so2-theme .main-button, body.so2-theme .secondary-button {
+          background: #23273a;
+          color: #eaecef;
+          border: 1px solid #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
         }
         body.so2-theme .main-button {
-          background: linear-gradient(45deg, var(--so2-accent), #ff6b6b);
+          background: #4b69ff;
+          color: #fff;
         }
-        body.so2-theme .card {
-          background: linear-gradient(135deg, var(--so2-secondary), var(--so2-tertiary));
-          border-color: var(--so2-accent);
+        body.so2-theme .nav-button {
+          background: #23243a;
+          color: #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
         }
-        body.so2-theme input[type=number] {
-          background: var(--so2-tertiary);
-          border-color: var(--so2-accent);
-          color: var(--so2-gold);
+        body.so2-theme .nav-button.active {
+          background: #4b69ff;
+          color: #fff;
         }
+        body.so2-theme #main-nav,
+        body.so2-theme #main-content,
+        body.so2-theme #header-card,
+        body.so2-theme .game-mode-switcher,
+        body.so2-theme .so2-action-bar,
+        body.so2-theme .so2-action-bar .main-button {
+          /* Удалены все параметры размеров и позиционирования */
+        }
+        /* Остальные специфические стили для so2-theme, связанные с размерами, также удалены */
 
         /* Новый интерфейс сапёра */
         #game-content-mines {
@@ -1142,55 +1193,198 @@
         /* --- БАШНЯ --- */
         #tower-game-area { display: flex; justify-content: center; align-items: flex-end; min-height: 340px; gap: 18px; }
         .tower-column { display: flex; flex-direction: column-reverse; gap: 8px; }
-        .tower-cell {
-          width: 54px; height: 54px; border-radius: 12px; background: linear-gradient(135deg, #23272f, #353941 80%);
-          display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer;
-          box-shadow: 0 2px 8px #0002; border: 2px solid #444; transition: background 0.2s, border-color 0.2s, transform 0.15s;
+        .tower-cell { height: 40px; background-color: var(--bg-tertiary); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+        .tower-row.active .tower-cell:hover { background-color: var(--border-color); transform: scale(1.05); }
+        .tower-row:not(.active) .tower-cell { opacity: 0.5; cursor: not-allowed; }
+        .tower-cell.safe { background-color: var(--accent-green); color: white; }
+        .tower-cell.danger { background-color: var(--accent-red); color: white; }
+        .tower-cell.player { background-color: var(--accent-primary); color: white; font-size: 1.5rem; }
+        
+        /* Standoff 2 specific styles */
+        .so2-card { 
+            background: linear-gradient(145deg, var(--so2-secondary), var(--so2-tertiary));
+            border: 1px solid var(--so2-accent);
+            box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3);
         }
-        .tower-cell.correct { background: linear-gradient(135deg, #28a745 60%, #b6f7c1 100%); color: #fff; border-color: #28a745; }
-        .tower-cell.wrong { background: linear-gradient(135deg, #e94560 60%, #f7b6b6 100%); color: #fff; border-color: #e94560; }
-        .tower-cell.selected { box-shadow: 0 0 0 4px #e9456033; transform: scale(1.08); }
-        .tower-cell.player { background: linear-gradient(135deg, #007BFF 60%, #00aaff 100%); color: #fff; border-color: #007BFF; font-size: 2.2rem; }
-        .tower-difficulty-btn {
-          padding: 10px 18px; border-radius: 10px; font-weight: bold; border: 2px solid #888; background: #23272f; color: #fff;
-          transition: background 0.2s, border-color 0.2s, color 0.2s;
-          cursor: pointer; font-size: 1rem;
+        .so2-button {
+            background: linear-gradient(45deg, var(--so2-accent), #ff6b6b);
+            border: none;
         }
-        .tower-difficulty-btn.selected, .tower-difficulty-btn:focus {
-          background: #e94560; color: #fff; border-color: #e94560;
+        .so2-inventory-item {
+            border-left: 4px solid var(--so2-accent);
+            background: linear-gradient(to right, rgba(26, 26, 46, 0.7), var(--so2-secondary));
         }
-        #tower-cashout-button { background: linear-gradient(45deg, #28a745, #FFD700); color: #222; font-weight: bold; }
+        .so2-gold { color: var(--so2-gold); }
+        .so2-silver { color: var(--so2-silver); }
+        
+        /* Game mode switcher animation */
+        .game-mode-switcher {
+            position: relative;
+            display: flex;
+            background-color: var(--bg-tertiary);
+            border-radius: 50px;
+            padding: 4px;
+            margin: 0 auto 20px;
+            max-width: 300px;
+            overflow: hidden;
+        }
+        .game-mode-switcher .switcher-active-bg {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
+            background: linear-gradient(90deg, #4b69ff 60%, #6a8cff 100%);
+            border-radius: 50px;
+            z-index: 0;
+            transition: transform 0.45s cubic-bezier(.68,-0.55,.27,1.55);
+            box-shadow: 0 2px 16px #4b69ff55;
+        }
+        .game-mode-switcher.csgo .switcher-active-bg {
+            transform: translateX(0);
+        }
+        .game-mode-switcher.standoff .switcher-active-bg {
+            transform: translateX(100%);
+        }
+        .game-mode-btn {
+            flex: 1;
+            padding: 10px 15px;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: color 0.3s ease;
+            color: var(--text-secondary);
+            background: none;
+        }
+        .game-mode-btn.active { color: white; }
+        
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        .hidden { display: none !important; }
 
-        /* --- Адаптация под мобильные и неоновые темы --- */
+        /* Адаптивные стили для модального окна и анимации */
+        input[type=number] {
+          background-color: var(--bg-tertiary);
+          border: 2px solid var(--border-color);
+          color: var(--text-primary);
+          border-radius: 10px;
+          padding: 12px 16px;
+          font-size: 1.1rem;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input[type=number]:focus {
+          border-color: var(--accent-primary);
+          box-shadow: 0 0 0 2px var(--accent-primary-hover)33;
+        }
+        input[type=number]::placeholder {
+          color: var(--text-secondary);
+          opacity: 1;
+        }
+        /* Reveal-анимация открытия кейса */
+        #case-reveal-modal {
+          display: none; position: fixed; inset: 0; z-index: 10000;
+          background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+          align-items: center; justify-content: center;
+        }
+        #case-reveal-modal.active { display: flex; }
+        #case-reveal-card {
+          background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+          border-radius: 24px; box-shadow: 0 0 40px 10px var(--accent-primary)44;
+          padding: 32px 12px 32px 12px; min-width: 320px; min-height: 180px;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          position: relative;
+        }
+        #case-reveal-roulette-container {
+          width: 100%; max-width: 480px; overflow: hidden; position: relative; margin: 0 auto 24px auto;
+        }
+        #case-reveal-roulette-line {
+          position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: linear-gradient(to bottom, var(--accent-primary), #fff 60%); z-index: 2; transform: translateX(-50%); border-radius: 4px;
+          box-shadow: 0 0 12px var(--accent-primary);
+        }
+        #case-reveal-roulette {
+          display: flex; align-items: center; transition: transform 5s cubic-bezier(0.25,0.1,0.25,1);
+          will-change: transform;
+        }
+        .case-reveal-item {
+          min-width: 120px; max-width: 160px; width: 18vw; height: 90px; font-size: 0.9rem; margin: 0 2px; padding: 8px;
+          border-radius: 12px; background: linear-gradient(145deg, var(--bg-tertiary), var(--bg-secondary));
+          border-top: 4px solid; box-shadow: var(--shadow-sm); font-weight: 600; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+          transition: box-shadow 0.2s;
+        }
+        .case-reveal-item.win {
+          box-shadow: 0 0 20px 4px var(--accent-green)80, 0 0 0 4px var(--accent-green)33;
+          border-top: 4px solid var(--accent-green);
+        }
+        #case-reveal-ok {
+          margin-top: 1.5em; font-size: 1.1rem; padding: 12px 32px;
+          border-radius: 12px; background: var(--accent-primary);
+          color: #fff; font-weight: bold; border: none; cursor: pointer;
+          box-shadow: 0 2px 12px var(--accent-primary)33;
+          opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        #case-reveal-ok.visible { opacity: 1; pointer-events: auto; }
         @media (max-width: 600px) {
-          #roulette-wheel-container, #roulette-svg { width: 98vw !important; height: 98vw !important; max-width: 98vw; max-height: 98vw; }
-          .roulette-color-btn, .tower-cell { width: 44px !important; height: 44px !important; font-size: 1rem !important; }
-          .tower-column { gap: 4px; }
-          #tower-game-area { min-height: 220px; gap: 8px; }
+          #case-reveal-card { min-width: 90vw; }
+          .case-reveal-item { min-width: 80px; max-width: 100px; width: 22vw; height: 60px; font-size: 0.8rem; }
         }
-        .theme-neon {
-          --accent-primary: #00fff7;
-          --accent-secondary: #ff00c8;
-          --bg-primary: #181c2b;
-          --bg-secondary: #23243a;
-          --bg-tertiary: #2a2d4a;
-          --text-primary: #fff;
-          --text-secondary: #b0b0b0;
+        #case-reveal-item-name {
+          font-size: 2rem; font-weight: bold; margin-bottom: 0.5em;
+          text-align: center;
         }
-        .theme-neon .main-button, .theme-neon .tower-difficulty-btn.selected {
-          background: linear-gradient(90deg, #00fff7 0%, #ff00c8 100%) !important;
-          color: #fff !important;
-          box-shadow: 0 0 16px #00fff7, 0 0 32px #ff00c8;
+        #case-reveal-item-price {
+          font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 1.5em;
         }
-        .theme-neon .roulette-color-btn.selected {
-          box-shadow: 0 0 0 6px #ff00c8cc, 0 0 16px #00fff7cc;
+
+        body.so2-theme {
+          --bg-primary: #181c2a;
+          --bg-secondary: #23273a;
+          --bg-tertiary: #23243a;
+          --accent-primary: #4b69ff;
+          --accent-secondary: #ff9800;
+          --accent-green: #28a745;
+          --accent-red: #e94560;
+          --border-color: #353941;
+          --text-primary: #eaecef;
+          --text-secondary: #8e9297;
+          font-family: 'Orbitron', 'Inter', sans-serif !important;
+          background: #181c2a !important;
         }
-        .theme-neon .tower-cell.player {
-          background: linear-gradient(135deg, #00fff7 60%, #ff00c8 100%);
-          box-shadow: 0 0 16px #00fff7, 0 0 32px #ff00c8;
+        body.so2-theme .card, body.so2-theme .modal-content {
+          background: #23243a;
+          border: 1px solid #353941;
         }
-        .theme-neon .tower-cell.correct { box-shadow: 0 0 8px #00fff7; }
-        .theme-neon .tower-cell.wrong { box-shadow: 0 0 8px #ff00c8; }
+        body.so2-theme .main-button, body.so2-theme .secondary-button {
+          background: #23273a;
+          color: #eaecef;
+          border: 1px solid #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
+        }
+        body.so2-theme .main-button {
+          background: #4b69ff;
+          color: #fff;
+        }
+        body.so2-theme .nav-button {
+          background: #23243a;
+          color: #4b69ff;
+          font-family: 'Orbitron', 'Inter', sans-serif;
+        }
+        body.so2-theme .nav-button.active {
+          background: #4b69ff;
+          color: #fff;
+        }
+        body.so2-theme #main-nav,
+        body.so2-theme #main-content,
+        body.so2-theme #header-card,
+        body.so2-theme .game-mode-switcher,
+        body.so2-theme .so2-action-bar,
+        body.so2-theme .so2-action-bar .main-button {
+          /* Удалены все параметры размеров и позиционирования */
+        }
+        /* Остальные специфические стили для so2-theme, связанные с размерами, также удалены */
 
         /* ...добавляю ripple-эффект для кнопок... */
         .ripple {
@@ -1252,6 +1446,208 @@
           .tower-cell { font-size: 1rem; }
           .tower-right-col { width: 100vw; }
         }
+
+        body.so2-theme #main-nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          width: 90px;
+          z-index: 100;
+          background: rgba(30, 34, 54, 0.55);
+          box-shadow: 0 0 32px 0 #4b69ff33;
+          backdrop-filter: blur(16px);
+          border-radius: 24px;
+          margin: 0;
+          transition: width 0.3s cubic-bezier(.4,2,.4,1), left 0.3s cubic-bezier(.4,2,.4,1), top 0.3s cubic-bezier(.4,2,.4,1);
+        }
+        @media (max-width: 600px) {
+          body.so2-theme #main-nav {
+            left: 0;
+            top: 0;
+            width: 70px;
+            height: 100vh;
+          }
+        }
+        body.so2-theme .nav-button {
+          width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          box-sizing: border-box;
+          padding: 0 18px 0 14px;
+        }
+        body.so2-theme .nav-button .icon {
+          width: 32px;
+          height: 32px;
+          min-width: 32px;
+          filter: drop-shadow(0 2px 6px #4b69ff44);
+        }
+        body.so2-theme .nav-button span {
+          flex: 1 1 auto;
+          text-align: left;
+        }
+        body.so2-theme .nav-button.active {
+          background: linear-gradient(90deg, #4b69ff 60%, #6a8cff 100%);
+          color: #fff;
+          border: 2.5px solid #fff;
+          font-weight: 900;
+          box-shadow: 0 8px 32px #4b69ff66, 0 2px 12px #fff2;
+          transform: scale(1.04);
+          text-shadow: 0 2px 12px #4b69ffcc, 0 1px 0 #fff4;
+        }
+        body.so2-theme .nav-button:hover {
+          background: linear-gradient(90deg, #3a4bbf 60%, #4b69ff 100%);
+          color: #fff;
+          border: 2.5px solid #fff;
+          box-shadow: 0 4px 24px #4b69ff55, 0 2px 12px #fff2;
+          transform: scale(1.03);
+        }
+        @media (max-width: 900px) {
+          body.so2-theme .nav-button {
+            padding: 0 6px 0 4px;
+          }
+        }
+        body.so2-theme #main-nav {
+          width: 120px;
+          transition: width 0.35s cubic-bezier(.4,2,.4,1), box-shadow 0.3s;
+        }
+        body.so2-theme #main-nav.collapsed {
+          width: 48px;
+          min-width: 48px;
+          box-shadow: 0 4px 24px #4b69ff22;
+        }
+        body.so2-theme .nav-toggle-btn {
+          position: absolute;
+          top: 16px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 40px;
+          height: 40px;
+          background: rgba(44,48,80,0.85);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 201;
+          box-shadow: 0 2px 12px #0004, 0 0 0 2px #4b69ff33;
+          transition: background 0.2s, box-shadow 0.2s, left 0.35s, transform 0.35s;
+          border: 2px solid #4b69ff44;
+        }
+        body.so2-theme .nav-toggle-btn:hover, body.so2-theme .nav-toggle-btn:active {
+          background: #4b69ffcc;
+          box-shadow: 0 4px 24px #4b69ff66, 0 0 0 4px #fff2;
+        }
+        body.so2-theme #main-nav.collapsed .nav-toggle-btn {
+          left: 100%;
+          top: 16px;
+          transform: translate(-50%, 0) rotate(180deg);
+          box-shadow: 0 2px 16px #4b69ff44, 0 0 0 4px #fff2;
+        }
+        body.so2-theme .nav-toggle-btn svg {
+          width: 28px;
+          height: 28px;
+          stroke: #fff;
+        }
+        @media (max-width: 900px) {
+          body.so2-theme .nav-toggle-btn {
+            width: 36px;
+            height: 36px;
+            top: 8px;
+          }
+          body.so2-theme #main-nav.collapsed .nav-toggle-btn {
+            left: 100%;
+            top: 8px;
+          }
+        }
+        body.so2-theme .nav-button {
+          transition: background 0.22s, color 0.22s, border 0.22s, box-shadow 0.22s, transform 0.18s, width 0.35s, padding 0.35s;
+        }
+        body.so2-theme #main-nav.collapsed .nav-button span {
+          opacity: 0;
+          width: 0;
+          margin: 0;
+          padding: 0;
+          transition: opacity 0.2s, width 0.35s;
+        }
+        body.so2-theme #main-nav:not(.collapsed) .nav-button span {
+          opacity: 1;
+          width: auto;
+          margin-left: 8px;
+          transition: opacity 0.2s 0.1s, width 0.35s 0.1s;
+        }
+        body.so2-theme #main-nav.collapsed .nav-button {
+          justify-content: center;
+          padding-left: 0;
+          padding-right: 0;
+          width: 40px;
+        }
+
+        body.theme-light {
+          --bg-primary: #f6f7fa;
+          --bg-secondary: #fff;
+          --bg-tertiary: #f0f2f7;
+          --text-primary: #23243a;
+          --text-secondary: #6b7280;
+          --accent-primary: #4b69ff;
+          --accent-secondary: #ff9800;
+          --accent-green: #28a745;
+          --accent-red: #e94560;
+          --border-color: #d1d5db;
+          background: var(--bg-primary) !important;
+          color: var(--text-primary) !important;
+        }
+        body.theme-light .card, body.theme-light .modal-content {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
+        }
+        body.theme-light .main-button, body.theme-light .secondary-button {
+          background: var(--bg-tertiary);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
+        }
+        body.theme-light .main-button {
+          background: linear-gradient(45deg, #4b69ff 0%, #8ab4ff 100%);
+          color: #fff;
+        }
+        body.theme-light .nav-button {
+          background: var(--bg-tertiary);
+          color: var(--accent-primary);
+        }
+        body.theme-light .nav-button.active {
+          background: var(--accent-primary);
+          color: #fff;
+        }
+        body:not(.so2-theme) .nav-toggle-btn {
+          display: none !important;
+        }
+        body:not(.so2-theme) .nav-toggle-btn {
+          display: none !important;
+        }
+        #main-nav {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 8px;
+          margin-bottom: 24px;
+          padding: 8px;
+          background-color: var(--bg-secondary);
+          border-radius: 16px;
+          box-shadow: var(--shadow-md);
+          position: sticky;
+          top: 1rem;
+          z-index: 40;
+        }
+        body.so2-theme #main-nav {
+          /* боковая панель, как было */
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: flex-start;
+          position: fixed;
+          top: 0;
+          left: 16px;
+          height: 100vh;
     </style>
     <!-- Стили для адаптации под ПК и телефон -->
     <style>
@@ -1262,12 +1658,20 @@
         body.device-pc #main-content { max-width: 900px; }
         body.device-mobile #main-content { max-width: 100vw; }
     </style>
+    <style>
+    #main-content {
+      transform: scale(var(--ui-scale));
+      transform-origin: top center;
+      transition: transform 0.3s cubic-bezier(.4,2,.4,1);
+    }
+    </style>
 </head>
 <body class="antialiased">
     <div id="toast-container"></div>
     
     <div id="main-content" class="w-full max-w-2xl mx-auto">
         <div class="game-mode-switcher csgo" id="game-mode-switcher">
+            <div class="switcher-active-bg"></div>
             <div id="game-mode-btn-csgo" class="game-mode-btn active" onclick="switchGameMode('csgo')">CS:GO 2</div>
             <div id="game-mode-btn-standoff" class="game-mode-btn" onclick="switchGameMode('standoff')">Standoff 2</div>
         </div>
@@ -1282,6 +1686,9 @@
         </header>
 
         <nav id="main-nav">
+            <div id="nav-toggle-btn" class="nav-toggle-btn" onclick="toggleNavMenu()">
+              <svg id="nav-toggle-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4b69ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
             <button onclick="switchTab('cases')" id="tab-cases" class="nav-button active">
                 <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 <span>Магазин</span>
@@ -2052,25 +2459,28 @@
         }
 
         function switchGameMode(mode) {
-             if (mode === currentGameMode) return;
-             soundEngine.play('ui_click');
-             currentGameMode = mode;
-             
-             const switcher = document.getElementById('game-mode-switcher');
-             switcher.classList.remove('csgo', 'standoff');
-             switcher.classList.add(mode);
-             
-             document.querySelectorAll('.game-mode-btn').forEach(b => b.classList.remove('active'));
-             document.getElementById(`game-mode-btn-${mode}`).classList.add('active');
-             
-             document.body.classList.toggle('so2-theme', mode === 'standoff');
-             document.getElementById('app-title').textContent = mode === 'csgo' ? 'Case Royale' : 'Standoff Royale';
-             
-             // Full reload of UI based on new mode
-             renderStore();
-             updateUI();
-             updateContractTab(); // Ensure contract UI updates
-             updateUpgradeTab(); // Ensure upgrade UI updates
+          currentGameMode = mode;
+          const switcher = document.getElementById('game-mode-switcher');
+          if (mode === 'standoff') {
+            document.body.classList.add('so2-theme');
+            document.body.classList.remove('theme-dark');
+            document.getElementById('app-title').textContent = 'Standoff 2';
+            document.getElementById('game-mode-btn-csgo').classList.remove('active');
+            document.getElementById('game-mode-btn-standoff').classList.add('active');
+            switcher.classList.remove('csgo');
+            switcher.classList.add('standoff');
+          } else {
+            document.body.classList.remove('so2-theme');
+            document.body.classList.add('theme-dark');
+            document.getElementById('app-title').textContent = 'CS:GO 2';
+            document.getElementById('game-mode-btn-csgo').classList.add('active');
+            document.getElementById('game-mode-btn-standoff').classList.remove('active');
+            switcher.classList.remove('standoff');
+            switcher.classList.add('csgo');
+          }
+          applySettings();
+          updateUI();
+          renderStore();
         }
         
         function openModal(modalId) {
@@ -3245,26 +3655,26 @@
         const TOWER_LEVELS = 8;
         const TOWER_COLS = 4;
         let towerState = {}; // Объявляем один раз здесь
-
+       
         function setTowerDifficulty(diff) {
-            towerState.difficulty = diff;
+          towerState.difficulty = diff;
             // Можно добавить визуальное отображение выбранной сложности
-            document.querySelectorAll('.tower-difficulty-btn').forEach(btn => {
+          document.querySelectorAll('.tower-difficulty-btn').forEach(btn => {
                 btn.classList.remove('active');
-            });
+          });
             document.querySelector(`.tower-difficulty-btn[onclick="setTowerDifficulty('${diff}')"]`).classList.add('active');
         }
 
         function startTowerGame() {
             const bet = parseFloat(document.getElementById('tower-bet-input').value);
-            if (isNaN(bet) || bet <= 0) { showToast('Неверная ставка', 'var(--accent-red)'); return; }
-            if (bet > state.balances[currentGameMode]) { showToast('Недостаточно средств', 'var(--accent-red)'); return; }
+          if (isNaN(bet) || bet <= 0) { showToast('Неверная ставка', 'var(--accent-red)'); return; }
+          if (bet > state.balances[currentGameMode]) { showToast('Недостаточно средств', 'var(--accent-red)'); return; }
             if (!towerState.difficulty) { showToast('Выберите сложность', 'var(--accent-red)'); return; }
             
-            soundEngine.play('ui_click');
-            state.balances[currentGameMode] -= bet;
-            saveState();
-            updateUI();
+          soundEngine.play('ui_click');
+          state.balances[currentGameMode] -= bet;
+          saveState();
+          updateUI();
 
             // Генерируем путь в соответствии с выбранной сложностью
             let correctPerRow;
@@ -3274,14 +3684,14 @@
                 case 'hard': correctPerRow = 1; break;
             }
             
-            towerState.bet = bet;
-            towerState.currentLevel = 0;
-            towerState.path = [];
+          towerState.bet = bet;
+          towerState.currentLevel = 0;
+          towerState.path = [];
             towerState.revealed = []; // Массив для хранения выбранных колонок на каждом уровне
-            towerState.playerCol = null;
-            towerState.finished = false;
+          towerState.playerCol = null;
+          towerState.finished = false;
 
-            for (let lvl = 0; lvl < TOWER_LEVELS; lvl++) {
+          for (let lvl = 0; lvl < TOWER_LEVELS; lvl++) {
                 let arr = Array(TOWER_COLS).fill('wrong');
                 let correctIndices = [];
                 while (correctIndices.length < correctPerRow) {
@@ -3289,121 +3699,121 @@
                     if (!correctIndices.includes(idx)) {
                         correctIndices.push(idx);
                     }
-                }
-                correctIndices.forEach(idx => arr[idx] = 'correct');
-                towerState.path.push(arr);
             }
+                correctIndices.forEach(idx => arr[idx] = 'correct');
+            towerState.path.push(arr);
+          }
 
-            renderTower();
+          renderTower();
             document.getElementById('tower-status-text').textContent = 'Выберите ячейку';
-            document.getElementById('tower-cashout-button').classList.remove('hidden');
+          document.getElementById('tower-cashout-button').classList.remove('hidden');
             document.getElementById('tower-cashout-button').disabled = true; // Кнопка заблокирована до первого хода
-            updateTowerWinnings();
+          updateTowerWinnings();
         }
 
         function renderTower() {
-            const board = document.getElementById('tower-board');
-            board.innerHTML = '';
+          const board = document.getElementById('tower-board');
+          board.innerHTML = '';
             // Рендерим снизу вверх
-            for (let row = 0; row < TOWER_LEVELS; row++) {
+          for (let row = 0; row < TOWER_LEVELS; row++) {
                 const lvl = TOWER_LEVELS - 1 - row; // Индекс уровня в state.path
-                for (let col = 0; col < TOWER_COLS; col++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'tower-cell';
+            for (let col = 0; col < TOWER_COLS; col++) {
+              const cell = document.createElement('div');
+              cell.className = 'tower-cell';
 
-                    // Если клетка уже открыта
-                    if (towerState.revealed[lvl] !== undefined) {
+              // Если клетка уже открыта
+              if (towerState.revealed[lvl] !== undefined) {
                         const type = towerState.path[lvl][towerState.revealed[lvl]];
                         // Показываем все ячейки на пройденном уровне
-                        if (col === towerState.revealed[lvl]) {
+                if (col === towerState.revealed[lvl]) {
                            cell.classList.add(type === 'correct' ? 'safe' : 'danger');
                            if(lvl === towerState.currentLevel -1) cell.classList.add('player');
                         } else {
                            cell.classList.add(towerState.path[lvl][col] === 'correct' ? 'safe' : 'danger');
                            cell.style.opacity = '0.4';
-                        }
-                    } else if (lvl === towerState.currentLevel && !towerState.finished) {
+                }
+              } else if (lvl === towerState.currentLevel && !towerState.finished) {
                         // Активный уровень для выбора
-                        cell.onclick = () => selectTowerCell(col);
-                        cell.style.cursor = 'pointer';
-                        cell.innerHTML = '?';
+                cell.onclick = () => selectTowerCell(col);
+                cell.style.cursor = 'pointer';
+                cell.innerHTML = '?';
                         cell.classList.add('active-row');
                     } else {
                         // Неактивные будущие уровни
                         cell.style.opacity = '0.5';
-                    }
-                    board.appendChild(cell);
-                }
+              }
+              board.appendChild(cell);
             }
+          }
         }
         
         function selectTowerCell(col) {
-            if (towerState.finished) return;
+          if (towerState.finished) return;
 
-            const lvl = towerState.currentLevel;
-            const cellType = towerState.path[lvl][col];
+          const lvl = towerState.currentLevel;
+          const cellType = towerState.path[lvl][col];
             towerState.revealed[lvl] = col; // Запоминаем выбор
-            towerState.playerCol = col;
+          towerState.playerCol = col;
             
             if (cellType === 'wrong') {
                 towerState.finished = true;
-                playSound('lose', 'tower');
+              playSound('lose', 'tower');
                 document.getElementById('tower-status-text').textContent = 'Вы проиграли!';
                 document.getElementById('tower-cashout-button').classList.add('hidden');
-                const area = document.getElementById('tower-game-area');
-                area.classList.add('tower-lose-flash');
-                setTimeout(()=>area.classList.remove('tower-lose-flash'), 600);
+              const area = document.getElementById('tower-game-area');
+              area.classList.add('tower-lose-flash');
+              setTimeout(()=>area.classList.remove('tower-lose-flash'), 600);
             } else {
-                towerState.currentLevel++;
+              towerState.currentLevel++;
                 playSound('jump', 'tower');
                 document.getElementById('tower-cashout-button').disabled = false; // Разблокируем кнопку
-                if (towerState.currentLevel === TOWER_LEVELS) {
+              if (towerState.currentLevel === TOWER_LEVELS) {
                     towerState.finished = true;
-                    document.getElementById('tower-status-text').textContent = 'Вы прошли всю башню!';
-                    playSound('win', 'tower');
+                document.getElementById('tower-status-text').textContent = 'Вы прошли всю башню!';
+                playSound('win', 'tower');
                     cashOutTower(); // Авто-кэшаут на вершине
                 } else {
                    document.getElementById('tower-status-text').textContent = 'Успех! Идите выше.';
                 }
+              }
+              renderTower();
+              updateTowerWinnings();
             }
-            renderTower();
-            updateTowerWinnings();
-        }
 
         function updateTowerWinnings() {
             // Множители в зависимости от сложности
             const mults = { easy: 1.25, medium: 1.8, hard: 3.5 };
-            let win = towerState.bet;
+          let win = towerState.bet;
             for (let i = 0; i < towerState.currentLevel; i++) {
                 win *= mults[towerState.difficulty];
             }
-            document.getElementById('tower-winnings-display').textContent = `$${win.toFixed(2)}`;
+          document.getElementById('tower-winnings-display').textContent = `$${win.toFixed(2)}`;
             
-            let nextWin = win * mults[towerState.difficulty];
+          let nextWin = win * mults[towerState.difficulty];
             if(towerState.currentLevel < TOWER_LEVELS){
                document.getElementById('tower-next-winnings-display').textContent = `След: $${nextWin.toFixed(2)}`;
             } else {
                document.getElementById('tower-next-winnings-display').textContent = 'МАКСИМУМ';
-            }
+        }
         }
 
         function cashOutTower() {
-            if (towerState.currentLevel === 0 || towerState.finished) return;
+          if (towerState.currentLevel === 0 || towerState.finished) return;
             
             const mults = { easy: 1.25, medium: 1.8, hard: 3.5 };
-            let win = towerState.bet;
+          let win = towerState.bet;
             for (let i = 0; i < towerState.currentLevel; i++) {
                 win *= mults[towerState.difficulty];
             }
             
-            state.balances[currentGameMode] += win;
-            saveState();
-            updateUI();
-            showToast(`Выигрыш $${win.toFixed(2)}!`, 'var(--accent-green)');
-            playSound('win', 'tower');
+          state.balances[currentGameMode] += win;
+          saveState();
+          updateUI();
+          showToast(`Выигрыш $${win.toFixed(2)}!`, 'var(--accent-green)');
+          playSound('win', 'tower');
 
-            towerState.finished = true;
-            document.getElementById('tower-cashout-button').classList.add('hidden');
+          towerState.finished = true;
+          document.getElementById('tower-cashout-button').classList.add('hidden');
             document.getElementById('tower-status-text').textContent = `Вы забрали выигрыш!`;
             renderTower(); // Чтобы показать все ячейки
         }
@@ -3576,6 +3986,84 @@
         }
 
         // --- MINES GAME LOGIC (замена) ---
+    </script>
+    <script>
+    function toggleNavMenu() {
+      const nav = document.getElementById('main-nav');
+      nav.classList.toggle('collapsed');
+    }
+    </script>
+    <script>
+    // ... существующий код ...
+    // --- ДОБАВЛЯЮ: обработка светлой темы и масштаба из настроек ---
+    document.addEventListener('DOMContentLoaded', function() {
+      // Светлая тема
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.checked = document.body.classList.contains('theme-light');
+        themeToggle.onchange = function() {
+          if (this.checked) {
+            document.body.classList.add('theme-light');
+            state.settings.theme = 'light';
+          } else {
+            document.body.classList.remove('theme-light');
+            state.settings.theme = 'dark';
+          }
+          saveState && saveState();
+        };
+      }
+      // Масштаб интерфейса
+      const zoomIn = document.getElementById('ui-zoom-in');
+      const zoomOut = document.getElementById('ui-zoom-out');
+      if (zoomIn && zoomOut) {
+        zoomIn.onclick = function() {
+          let scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-scale')) || 1;
+          scale = Math.min(2, scale + 0.1);
+          document.documentElement.style.setProperty('--ui-scale', scale);
+          state.settings.uiScale = scale;
+          saveState && saveState();
+        };
+        zoomOut.onclick = function() {
+          let scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-scale')) || 1;
+          scale = Math.max(0.6, scale - 0.1);
+          document.documentElement.style.setProperty('--ui-scale', scale);
+          state.settings.uiScale = scale;
+          saveState && saveState();
+        };
+        // При загрузке применяем сохранённый масштаб
+        if (state.settings && state.settings.uiScale) {
+          document.documentElement.style.setProperty('--ui-scale', state.settings.uiScale);
+        }
+      }
+    });
+    // ... существующий код ...
+    </script>
+    <button id="admin-panel-btn" style="display:none;">Админ-панель</button>
+    <div id="admin-panel" style="display:none;">
+      <h2>Админ-панель</h2>
+      <button onclick="getUsers()">Показать пользователей</button>
+      <div id="users-list"></div>
+    </div>
+    <script>
+      // Получаем Telegram ID пользователя через Telegram WebApp SDK
+      window.Telegram.WebApp.ready(function() {
+        const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        if (userId == 1388045673) {
+          document.getElementById('admin-panel-btn').style.display = 'block';
+        }
+      });
+
+      document.getElementById('admin-panel-btn').onclick = function() {
+        document.getElementById('admin-panel').style.display = 'block';
+      };
+
+      function getUsers() {
+        fetch('https://casebot.pythonanywhere.com/api/get_users')
+          .then(r => r.json())
+          .then(users => {
+            document.getElementById('users-list').innerText = JSON.stringify(users, null, 2);
+          });
+      }
     </script>
 </body>
 </html>
