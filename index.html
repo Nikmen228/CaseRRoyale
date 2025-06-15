@@ -4038,32 +4038,53 @@
     });
     // ... существующий код ...
     </script>
-    <button id="admin-panel-btn" style="display:none;">Админ-панель</button>
-    <div id="admin-panel" style="display:none;">
-      <h2>Админ-панель</h2>
-      <button onclick="getUsers()">Показать пользователей</button>
-      <div id="users-list"></div>
-    </div>
     <script>
-      // Получаем Telegram ID пользователя через Telegram WebApp SDK
-      window.Telegram.WebApp.ready(function() {
-        const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
-        if (userId == 1388045673) {
-          document.getElementById('admin-panel-btn').style.display = 'block';
-        }
-      });
+document.addEventListener('DOMContentLoaded', function() {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    let userId = null;
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+        userId = tg.initDataUnsafe.user.id;
+    }
+    // Проверяем, админ ли пользователь
+    if (userId == 1388045673) {
+        state.isAdmin = true;
+        document.getElementById('tab-admin').classList.remove('hidden');
+        if (typeof initAdminPanel === 'function') initAdminPanel();
+    } else {
+        state.isAdmin = false;
+        document.getElementById('tab-admin').classList.add('hidden');
+    }
+    // Рендерим кейсы
+    if (typeof renderCases === 'function') renderCases();
+});
 
-      document.getElementById('admin-panel-btn').onclick = function() {
-        document.getElementById('admin-panel').style.display = 'block';
-      };
+// --- ФУНКЦИЯ РЕНДЕРА КЕЙСОВ ---
+function renderCases() {
+    const container = document.getElementById('content-cases');
+    if (!container) return;
+    let html = '';
+    const casesData = currentGameMode === 'csgo' ? CASES_DATA_CSGO : CASES_DATA_SO2;
+    Object.entries(casesData).forEach(([key, data]) => {
+        html += `<div class="card p-4 flex flex-col gap-2">
+            <div class="font-bold text-lg">${data.name}</div>
+            <div class="text-sm" style="color:var(--text-secondary)">Цена: $${data.price.toFixed(2)}</div>
+            <button class="main-button mt-2" onclick="openCase('${key}')">Открыть</button>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
 
-      function getUsers() {
-        fetch('https://casebot.pythonanywhere.com/api/get_users')
-          .then(r => r.json())
-          .then(users => {
-            document.getElementById('users-list').innerText = JSON.stringify(users, null, 2);
-          });
-      }
-    </script>
+// --- УДАЛЯЕМ СТАРУЮ ПРОСТУЮ АДМИН-ПАНЕЛЬ ---
+const oldAdminBtn = document.getElementById('admin-panel-btn');
+if (oldAdminBtn) oldAdminBtn.remove();
+const oldAdminDiv = document.getElementById('admin-panel');
+if (oldAdminDiv) oldAdminDiv.remove();
+
+// --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ОТКРЫТИЯ КЕЙСА ---
+function openCase(caseKey) {
+    // Здесь должна быть логика открытия кейса (можно доработать под ваш backend)
+    alert('Открытие кейса: ' + caseKey);
+}
+</script>
 </body>
 </html>
