@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -4121,6 +4122,103 @@ if (oldAdminDiv) oldAdminDiv.remove();
 function openCase(caseKey) {
     // Здесь должна быть логика открытия кейса (можно доработать под ваш backend)
     alert('Открытие кейса: ' + caseKey);
+}
+</script>
+<script>
+function adminGiveMoney() {
+    const targetId = Number(DOM.admin.giveMoneyId.value);
+    const amount = parseFloat(DOM.admin.giveMoneyAmount.value);
+    if(!targetId || isNaN(amount)) { showToast('Введите ID и сумму', 'var(--accent-red)'); return; }
+    fetch('https://casebot.pythonanywhere.com/api/set_balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: targetId, balance: amount })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res.result === 'success') {
+            showToast(`Баланс игрока ${targetId} установлен на $${amount}`, 'var(--accent-green)');
+            renderAdminPlayerList();
+        } else {
+            showToast('Игрок не найден', 'var(--accent-red)');
+        }
+    })
+    .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
+}
+function adminGiveCase() {
+    const targetId = Number(DOM.admin.giveCaseId.value);
+    const caseId = DOM.admin.giveCaseSelect.value;
+    if(!targetId || !caseId) { showToast('Введите ID и выберите кейс', 'var(--accent-red)'); return; }
+    fetch('https://casebot.pythonanywhere.com/api/give_case', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: targetId, case_id: caseId })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res.result === 'success') {
+            showToast(`Кейс выдан игроку ${targetId}`, 'var(--accent-green)');
+            renderAdminPlayerList();
+        } else {
+            showToast('Игрок не найден', 'var(--accent-red)');
+        }
+    })
+    .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
+}
+function setLuckMultiplier() {
+    const targetId = Number(DOM.admin.luckPlayerId.value);
+    const multiplier = parseFloat(DOM.admin.luckMultiplier.value);
+    if(!targetId || isNaN(multiplier)) { showToast('Введите ID и множитель', 'var(--accent-red)'); return; }
+    fetch('https://casebot.pythonanywhere.com/api/set_luck', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: targetId, luck_multiplier: multiplier })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res.result === 'success') {
+            showToast(`Удача для ${targetId} установлена на ${multiplier}x`, 'var(--accent-green)');
+            renderAdminPlayerList();
+        } else {
+            showToast('Игрок не найден', 'var(--accent-red)');
+        }
+    })
+    .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
+}
+function adminDeleteUser() {
+    const targetId = Number(DOM.admin.deleteUserId.value);
+    if(!targetId) { showToast('Введите ID', 'var(--accent-red)'); return; }
+    fetch('https://casebot.pythonanywhere.com/api/delete_user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: targetId })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res.result === 'success') {
+            showToast(`Пользователь ${targetId} удалён`, 'var(--accent-green)');
+            renderAdminPlayerList();
+        } else {
+            showToast('Игрок не найден', 'var(--accent-red)');
+        }
+    })
+    .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
+}
+function adminResetUsers() {
+    if (!confirm('Точно сбросить всех пользователей?')) return;
+    fetch('https://casebot.pythonanywhere.com/api/reset_users', {
+        method: 'POST'
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res.result === 'success') {
+            showToast('Все пользователи удалены', 'var(--accent-green)');
+            renderAdminPlayerList();
+        } else {
+            showToast('Ошибка сброса', 'var(--accent-red)');
+        }
+    })
+    .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
 }
 </script>
 </body>
