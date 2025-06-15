@@ -3256,12 +3256,16 @@
         }
         function renderAdminPlayerList() {
             if(!state.isAdmin) return;
-            const allUsers = JSON.parse(localStorage.getItem('caseRoyaleAllUsers') || '{}');
-            DOM.admin.playerList.innerHTML = Object.entries(allUsers).map(([id, data]) => 
-                `<div class="p-2 rounded" style="background: var(--bg-tertiary);">
-                    <p>${data.firstName} - <code class="text-xs p-1 rounded" style="background: var(--bg-primary);">${id}</code></p>
-                </div>`
-            ).join('');
+            fetch('https://casebot.pythonanywhere.com/api/get_users')
+                .then(r => r.json())
+                .then(users => {
+                    DOM.admin.playerList.innerHTML = users.map(user =>
+                        `<div class="p-2 rounded" style="background: var(--bg-tertiary);">
+                            <p>${user.username} - <code class="text-xs p-1 rounded" style="background: var(--bg-primary);">${user.id}</code></p>
+                            <p>Баланс: $${user.balance}</p>
+                        </div>`
+                    ).join('');
+                });
         }
         function adminGiveMoney() {
             const targetId = DOM.admin.giveMoneyId.value;
