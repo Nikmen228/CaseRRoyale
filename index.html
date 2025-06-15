@@ -542,7 +542,7 @@
         /* Game mode switcher animation */
         .game-mode-switcher {
             position: relative;
-          display: flex;
+            display: flex;
             background-color: var(--bg-tertiary);
             border-radius: 50px;
             padding: 4px;
@@ -3283,49 +3283,67 @@
                 });
         }
         function adminGiveMoney() {
-            const targetId = DOM.admin.giveMoneyId.value;
+            const targetId = Number(DOM.admin.giveMoneyId.value);
             const amount = parseFloat(DOM.admin.giveMoneyAmount.value);
             if(!targetId || isNaN(amount)) { showToast('Введите ID и сумму', 'var(--accent-red)'); return; }
 
-            const key = `caseRoyaleState_${targetId}`;
-            let targetState = JSON.parse(localStorage.getItem(key));
-            if(targetState) {
-                targetState.balances[currentGameMode] += amount;
-                localStorage.setItem(key, JSON.stringify(targetState));
-                showToast(`$${amount} выдано игроку ${targetId}`, 'var(--accent-green)');
-            } else {
-                showToast('Игрок не найден', 'var(--accent-red)');
-            }
+            fetch('https://casebot.pythonanywhere.com/api/set_balance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: targetId, balance: amount })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.result === 'success') {
+                    showToast(`Баланс игрока ${targetId} установлен на $${amount}`, 'var(--accent-green)');
+                    renderAdminPlayerList(); // обновить список
+                } else {
+                    showToast('Игрок не найден', 'var(--accent-red)');
+                }
+            })
+            .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
         }
         function adminGiveCase() {
-             const targetId = DOM.admin.giveCaseId.value;
-             const caseId = DOM.admin.giveCaseSelect.value;
-             if(!targetId || !caseId) { showToast('Введите ID и выберите кейс', 'var(--accent-red)'); return; }
-             
-             const key = `caseRoyaleState_${targetId}`;
-             let targetState = JSON.parse(localStorage.getItem(key));
-             if(targetState) {
-                 targetState.cases[currentGameMode][caseId] = (targetState.cases[currentGameMode][caseId] || 0) + 1;
-                 localStorage.setItem(key, JSON.stringify(targetState));
-                 showToast(`Кейс выдан игроку ${targetId}`, 'var(--accent-green)');
-             } else {
-                 showToast('Игрок не найден', 'var(--accent-red)');
-             }
+            const targetId = Number(DOM.admin.giveCaseId.value);
+            const caseId = DOM.admin.giveCaseSelect.value;
+            if(!targetId || !caseId) { showToast('Введите ID и выберите кейс', 'var(--accent-red)'); return; }
+
+            fetch('https://casebot.pythonanywhere.com/api/give_case', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: targetId, case_id: caseId })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.result === 'success') {
+                    showToast(`Кейс выдан игроку ${targetId}`, 'var(--accent-green)');
+                    renderAdminPlayerList(); // обновить список
+                } else {
+                    showToast('Игрок не найден', 'var(--accent-red)');
+                }
+            })
+            .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
         }
         function setLuckMultiplier() {
-             const targetId = DOM.admin.luckPlayerId.value;
-             const multiplier = parseFloat(DOM.admin.luckMultiplier.value);
-             if(!targetId || isNaN(multiplier)) { showToast('Введите ID и множитель', 'var(--accent-red)'); return; }
+            const targetId = Number(DOM.admin.luckPlayerId.value);
+            const multiplier = parseFloat(DOM.admin.luckMultiplier.value);
+            if(!targetId || isNaN(multiplier)) { showToast('Введите ID и множитель', 'var(--accent-red)'); return; }
 
-             const key = `caseRoyaleState_${targetId}`;
-             let targetState = JSON.parse(localStorage.getItem(key));
-             if(targetState) {
-                 targetState.luckMultiplier = multiplier;
-                 localStorage.setItem(key, JSON.stringify(targetState));
-                 showToast(`Удача для ${targetId} установлена на ${multiplier}x`, 'var(--accent-green)');
-             } else {
-                 showToast('Игрок не найден', 'var(--accent-red)');
-             }
+            fetch('https://casebot.pythonanywhere.com/api/set_luck', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: targetId, luck_multiplier: multiplier })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.result === 'success') {
+                    showToast(`Удача для ${targetId} установлена на ${multiplier}x`, 'var(--accent-green)');
+                    renderAdminPlayerList(); // обновить список
+                } else {
+                    showToast('Игрок не найден', 'var(--accent-red)');
+                }
+            })
+            .catch(() => showToast('Ошибка сервера', 'var(--accent-red)'));
         }
 
 
