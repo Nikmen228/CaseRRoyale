@@ -542,7 +542,7 @@
         /* Game mode switcher animation */
         .game-mode-switcher {
             position: relative;
-            display: flex;
+          display: flex;
             background-color: var(--bg-tertiary);
             border-radius: 50px;
             padding: 4px;
@@ -3255,15 +3255,31 @@
             }
         }
         function renderAdminPlayerList() {
-            console.log('renderAdminPlayerList вызвана');
-            state.isAdmin = true;
+            if (!state.isAdmin) return;
             fetch('https://casebot.pythonanywhere.com/api/get_users')
                 .then(r => r.json())
                 .then(users => {
-                    console.log('USERS FROM API:', users);
-                    DOM.admin.playerList.innerHTML = users.map(user =>
-                        `<div class=\"p-2 rounded\" style=\"background: var(--bg-tertiary);\">\n<p>${user.username} - <code class=\"text-xs p-1 rounded\" style=\"background: var(--bg-primary);\">${user.id}</code></p>\n<p>Баланс: $${user.balance}</p>\n</div>`
+                    var playerList = document.getElementById('admin-player-list');
+                    if (!playerList) {
+                        document.body.insertAdjacentHTML('beforeend', '<div style="color:red;position:fixed;top:0;left:0;z-index:9999;">admin-player-list не найден!</div>');
+                        return;
+                    }
+                    if (!Array.isArray(users) || users.length === 0) {
+                        playerList.innerHTML = '<div class="text-center text-gray-400">Нет игроков</div>';
+                        return;
+                    }
+                    playerList.innerHTML = users.map(user =>
+                        `<div class="p-2 rounded" style="background: var(--bg-tertiary);">
+                            <p>${user.username} - <code class="text-xs p-1 rounded" style="background: var(--bg-primary);">${user.id}</code></p>
+                            <p>Баланс: $${user.balance}</p>
+                        </div>`
                     ).join('');
+                })
+                .catch(err => {
+                    var playerList = document.getElementById('admin-player-list');
+                    if (playerList) {
+                        playerList.innerHTML = '<div class="text-center text-red-500">Ошибка загрузки игроков</div>';
+                    }
                 });
         }
         function adminGiveMoney() {
