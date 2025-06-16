@@ -2066,6 +2066,173 @@
       </div>
     </div>
 
+    <div id="admin-panel-v2" class="container" style="display:none;">
+        <h1>Расширенная Админ-панель</h1>
+        <div id="admin-msg"></div>
+        <button onclick="loadAdminUsers()">🔄 Обновить список игроков</button>
+        <button onclick="adminResetUsers()" style="float:right;background:#a00;">Сбросить всех пользователей</button>
+        <table id="adminUsersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Имя</th>
+                    <th>Баланс</th>
+                    <th>Кейсы</th>
+                    <th>Множитель удачи</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Пользователи будут тут -->
+            </tbody>
+        </table>
+    </div>
+    <script>
+        // Добавляем новые админские функции
+        const ADMIN_API = 'https://casebot.pythonanywhere.com/api';
+        const ADMIN_TOKEN = 'ac1f8df796b12ab1dcd9e0ddf9abe3b3f9ea1661';
+
+        // Показываем админ-панель только админу
+        document.addEventListener('DOMContentLoaded', function() {
+            const tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && 
+                tg.initDataUnsafe.user.id === 1388045673) {
+                document.getElementById('admin-panel-v2').style.display = 'block';
+                loadAdminUsers();
+            }
+        });
+
+        function showAdminMsg(text, type='error') {
+            const msg = document.getElementById('admin-msg');
+            if (msg) {
+                msg.className = type;
+                msg.textContent = text;
+                setTimeout(() => { msg.textContent = ''; }, 3000);
+            }
+        }
+
+        async function fetchWithAdminAuth(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${ADMIN_TOKEN}`,
+                ...options.headers
+            };
+            return fetch(url, { ...options, headers });
+        }
+
+        async function loadAdminUsers() {
+            const tbody = document.querySelector('#adminUsersTable tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="7">Загрузка...</td></tr>';
+            try {
+                const res = await fetchWithAdminAuth(`${ADMIN_API}/users`);
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const users = await res.json();
+                if (!users || Object.keys(users).length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7">Нет пользователей</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = '';
+                Object.values(users).forEach(user => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${user.username || ''}</td>
+                            <td>${user.first_name || ''}</td>
+                            <td>
+                                <input type="number" value="${user.balance}" min="0" style="width:70px;" id="adminBal_${user.id}">
+                                <button onclick="adminSetBalance('${user.id}')">💰</button>
+                            </td>
+                            <td>
+                                <input type="text" placeholder="ID кейса" id="adminCase_${user.id}" style="width:60px;">
+                                <button onclick="adminGiveCase('${user.id}')">🎁</button>
+                            </td>
+                            <td>
+                                <input type="number" value="${user.luckMultiplier || 1}" min="1" max="100" style="width:50px;" id="adminLuck_${user.id}">
+                                <button onclick="adminSetLuck('${user.id}')">🍀</button>
+                            </td>
+                            <td class="actions">
+                                <button onclick="adminDeleteUser('${user.id}')" style="background:#a00;">Удалить</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="7">Ошибка загрузки игроков</td></tr>';
+                showAdminMsg('Ошибка загрузки игроков: ' + e.message);
+            }
+        }
+
+        async function adminSetBalance(userId) {
+            const balance = document.getElementById('adminBal_' + userId).value;
+            const res = await fetchWithAdminAuth(`${ADMIN_API}/set_balance`, {
+                method: 'POST',
+                body: JSON.stringify({user_id: userId, balance: Number(balance)})
+            });
+            const data = await res.json();
+            if (data.result === 'success') {
+                showAdminMsg('Баланс обновлён', 'success');
+                loadAdminUsers();
+                // Обновляем старый список тоже, если он есть
+                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+            } else showAdminMsg('Ошибка обновления баланса');
+        }
+
+        async function adminGiveCase(userId) {
+            const caseId = document.getElementById('adminCase_' + userId).value;
+            if (!caseId) return showAdminMsg('Введите ID кейса');
+            const res = await fetchWithAdminAuth(`${ADMIN_API}/give_case`, {
+                method: 'POST',
+                body: JSON.stringify({user_id: userId, case_id: caseId})
+            });
+            const data = await res.json();
+            if (data.result === 'success') {
+                showAdminMsg('Кейс выдан', 'success');
+                loadAdminUsers();
+                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+            } else showAdminMsg('Ошибка выдачи кейса');
+        }
+
+        async function adminSetLuck(userId) {
+            const luck = document.getElementById('adminLuck_' + userId).value;
+            const res = await fetchWithAdminAuth(`${ADMIN_API}/set_luck`, {
+                method: 'POST',
+                body: JSON.stringify({user_id: userId, luck_multiplier: Number(luck)})
+            });
+            const data = await res.json();
+            if (data.result === 'success') {
+                showAdminMsg('Множитель удачи обновлён', 'success');
+                loadAdminUsers();
+                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+            } else showAdminMsg('Ошибка обновления множителя');
+        }
+
+        async function adminDeleteUser(userId) {
+            if (!confirm('Удалить пользователя?')) return;
+            const res = await fetchWithAdminAuth(`${ADMIN_API}/delete_user`, {
+                method: 'POST',
+                body: JSON.stringify({user_id: userId})
+            });
+            const data = await res.json();
+            if (data.result === 'success') {
+                showAdminMsg('Пользователь удалён', 'success');
+                loadAdminUsers();
+                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+            } else showAdminMsg('Ошибка удаления пользователя');
+        }
+
+        async function adminResetUsers() {
+            if (!confirm('Сбросить всех пользователей?')) return;
+            const res = await fetchWithAdminAuth(`${ADMIN_API}/reset_users`, {method: 'POST'});
+            const data = await res.json();
+            if (data.result === 'success') {
+                showAdminMsg('Все пользователи удалены', 'success');
+                loadAdminUsers();
+                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+            } else showAdminMsg('Ошибка сброса');
+        }
+    </script>
     <script>
         // --- COMPLETE REWRITTEN AND FIXED JAVASCRIPT ---
         
@@ -3257,19 +3424,22 @@
         }
         function renderAdminPlayerList() {
             if (!state.isAdmin) return;
-            fetch('https://casebot.pythonanywhere.com/api/get_users')
-                .then(r => r.json())
+            fetch('https://casebot.pythonanywhere.com/api/users')
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP error ' + r.status);
+                    return r.json();
+                })
                 .then(users => {
                     var playerList = document.getElementById('admin-player-list');
                     if (!playerList) {
                         document.body.insertAdjacentHTML('beforeend', '<div style="color:red;position:fixed;top:0;left:0;z-index:9999;">admin-player-list не найден!</div>');
                         return;
                     }
-                    if (!Array.isArray(users) || users.length === 0) {
+                    if (!users || Object.keys(users).length === 0) {
                         playerList.innerHTML = '<div class="text-center text-gray-400">Нет игроков</div>';
                         return;
                     }
-                    playerList.innerHTML = users.map(user =>
+                    playerList.innerHTML = Object.values(users).map(user =>
                         `<div class="p-2 rounded" style="background: var(--bg-tertiary);">
                             <p>${user.username} - <code class="text-xs p-1 rounded" style="background: var(--bg-primary);">${user.id}</code></p>
                             <p>Баланс: $${user.balance}</p>
@@ -3277,6 +3447,7 @@
                     ).join('');
                 })
                 .catch(err => {
+                    console.error('Ошибка загрузки игроков:', err);
                     var playerList = document.getElementById('admin-player-list');
                     if (playerList) {
                         playerList.innerHTML = '<div class="text-center text-red-500">Ошибка загрузки игроков</div>';
