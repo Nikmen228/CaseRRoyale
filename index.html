@@ -2091,7 +2091,6 @@
     <script>
         // Добавляем новые админские функции
         const ADMIN_API = 'https://casebot.pythonanywhere.com/api';
-        const ADMIN_TOKEN = 'ac1f8df796b12ab1dcd9e0ddf9abe3b3f9ea1661';
 
         // Показываем админ-панель только админу
         document.addEventListener('DOMContentLoaded', function() {
@@ -2112,10 +2111,9 @@
             }
         }
 
-        async function fetchWithAdminAuth(url, options = {}) {
+        async function fetchAdmin(url, options = {}) {
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': `Token ${ADMIN_TOKEN}`,
                 ...options.headers
             };
             return fetch(url, { ...options, headers });
@@ -2126,7 +2124,8 @@
             if (!tbody) return;
             tbody.innerHTML = '<tr><td colspan="7">Загрузка...</td></tr>';
             try {
-                const res = await fetchWithAdminAuth(`${ADMIN_API}/users`);
+                // Используем обычный fetch без авторизации, так как API не требует токена
+                const res = await fetch(`${ADMIN_API}/users`);
                 if (!res.ok) throw new Error('Ошибка загрузки');
                 const users = await res.json();
                 if (!users || Object.keys(users).length === 0) {
@@ -2134,26 +2133,26 @@
                     return;
                 }
                 tbody.innerHTML = '';
-                Object.values(users).forEach(user => {
+                Object.entries(users).forEach(([userId, user]) => {
                     tbody.innerHTML += `
                         <tr>
-                            <td>${user.id}</td>
+                            <td>${userId}</td>
                             <td>${user.username || ''}</td>
                             <td>${user.first_name || ''}</td>
                             <td>
-                                <input type="number" value="${user.balance}" min="0" style="width:70px;" id="adminBal_${user.id}">
-                                <button onclick="adminSetBalance('${user.id}')">💰</button>
+                                <input type="number" value="${user.balance}" min="0" style="width:70px;" id="adminBal_${userId}">
+                                <button onclick="adminSetBalance('${userId}')">💰</button>
                             </td>
                             <td>
-                                <input type="text" placeholder="ID кейса" id="adminCase_${user.id}" style="width:60px;">
-                                <button onclick="adminGiveCase('${user.id}')">🎁</button>
+                                <input type="text" placeholder="ID кейса" id="adminCase_${userId}" style="width:60px;">
+                                <button onclick="adminGiveCase('${userId}')">🎁</button>
                             </td>
                             <td>
-                                <input type="number" value="${user.luckMultiplier || 1}" min="1" max="100" style="width:50px;" id="adminLuck_${user.id}">
-                                <button onclick="adminSetLuck('${user.id}')">🍀</button>
+                                <input type="number" value="${user.luckMultiplier || 1}" min="1" max="100" style="width:50px;" id="adminLuck_${userId}">
+                                <button onclick="adminSetLuck('${userId}')">🍀</button>
                             </td>
                             <td class="actions">
-                                <button onclick="adminDeleteUser('${user.id}')" style="background:#a00;">Удалить</button>
+                                <button onclick="adminDeleteUser('${userId}')" style="background:#a00;">Удалить</button>
                             </td>
                         </tr>
                     `;
@@ -2166,7 +2165,7 @@
 
         async function adminSetBalance(userId) {
             const balance = document.getElementById('adminBal_' + userId).value;
-            const res = await fetchWithAdminAuth(`${ADMIN_API}/set_balance`, {
+            const res = await fetchAdmin(`${ADMIN_API}/set_balance`, {
                 method: 'POST',
                 body: JSON.stringify({user_id: userId, balance: Number(balance)})
             });
@@ -2182,7 +2181,7 @@
         async function adminGiveCase(userId) {
             const caseId = document.getElementById('adminCase_' + userId).value;
             if (!caseId) return showAdminMsg('Введите ID кейса');
-            const res = await fetchWithAdminAuth(`${ADMIN_API}/give_case`, {
+            const res = await fetchAdmin(`${ADMIN_API}/give_case`, {
                 method: 'POST',
                 body: JSON.stringify({user_id: userId, case_id: caseId})
             });
@@ -2196,7 +2195,7 @@
 
         async function adminSetLuck(userId) {
             const luck = document.getElementById('adminLuck_' + userId).value;
-            const res = await fetchWithAdminAuth(`${ADMIN_API}/set_luck`, {
+            const res = await fetchAdmin(`${ADMIN_API}/set_luck`, {
                 method: 'POST',
                 body: JSON.stringify({user_id: userId, luck_multiplier: Number(luck)})
             });
@@ -2210,7 +2209,7 @@
 
         async function adminDeleteUser(userId) {
             if (!confirm('Удалить пользователя?')) return;
-            const res = await fetchWithAdminAuth(`${ADMIN_API}/delete_user`, {
+            const res = await fetchAdmin(`${ADMIN_API}/delete_user`, {
                 method: 'POST',
                 body: JSON.stringify({user_id: userId})
             });
@@ -2224,7 +2223,7 @@
 
         async function adminResetUsers() {
             if (!confirm('Сбросить всех пользователей?')) return;
-            const res = await fetchWithAdminAuth(`${ADMIN_API}/reset_users`, {method: 'POST'});
+            const res = await fetchAdmin(`${ADMIN_API}/reset_users`, {method: 'POST'});
             const data = await res.json();
             if (data.result === 'success') {
                 showAdminMsg('Все пользователи удалены', 'success');
