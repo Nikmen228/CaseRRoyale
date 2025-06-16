@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -2164,16 +2163,16 @@
         }
 
         async function adminSetBalance(userId) {
-            const balance = document.getElementById('adminBal_' + userId).value;
+            const balance = Number(document.getElementById('adminBal_' + userId).value);
+            if (isNaN(balance)) return showAdminMsg('Некорректный баланс');
             const res = await fetchAdmin(`${ADMIN_API}/set_balance`, {
                 method: 'POST',
-                body: JSON.stringify({user_id: userId, balance: Number(balance)})
+                body: JSON.stringify({user_id: String(userId), balance: balance})
             });
             const data = await res.json();
             if (data.result === 'success') {
                 showAdminMsg('Баланс обновлён', 'success');
-                loadAdminUsers();
-                // Обновляем старый список тоже, если он есть
+                await loadAdminUsers();
                 if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
             } else showAdminMsg('Ошибка обновления баланса');
         }
@@ -2183,12 +2182,12 @@
             if (!caseId) return showAdminMsg('Введите ID кейса');
             const res = await fetchAdmin(`${ADMIN_API}/give_case`, {
                 method: 'POST',
-                body: JSON.stringify({user_id: userId, case_id: caseId})
+                body: JSON.stringify({user_id: String(userId), case_id: caseId})
             });
             const data = await res.json();
             if (data.result === 'success') {
                 showAdminMsg('Кейс выдан', 'success');
-                loadAdminUsers();
+                await loadAdminUsers();
                 if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
             } else showAdminMsg('Ошибка выдачи кейса');
         }
