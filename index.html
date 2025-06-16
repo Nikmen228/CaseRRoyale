@@ -2065,7 +2065,8 @@
       </div>
     </div>
 
-    <div id="admin-panel-v2" class="container" style="display:none;">
+    <!-- НОВАЯ АДМИН-ПАНЕЛЬ -->
+    <div id="admin-panel-v2" class="container" style="display:none; margin-top: 40px;">
         <h1>Расширенная Админ-панель</h1>
         <div id="admin-msg"></div>
         <button onclick="loadAdminUsers()">🔄 Обновить список игроков</button>
@@ -2088,19 +2089,8 @@
         </table>
     </div>
     <script>
-        // Добавляем новые админские функции
+        // --- НОВЫЙ КОД АДМИНКИ ---
         const ADMIN_API = 'https://casebot.pythonanywhere.com/api';
-
-        // Показываем админ-панель только админу
-        document.addEventListener('DOMContentLoaded', function() {
-            const tg = window.Telegram && window.Telegram.WebApp;
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && 
-                tg.initDataUnsafe.user.id === 1388045673) {
-                document.getElementById('admin-panel-v2').style.display = 'block';
-                loadAdminUsers();
-            }
-        });
-
         function showAdminMsg(text, type='error') {
             const msg = document.getElementById('admin-msg');
             if (msg) {
@@ -2109,7 +2099,6 @@
                 setTimeout(() => { msg.textContent = ''; }, 3000);
             }
         }
-
         async function fetchAdmin(url, options = {}) {
             const headers = {
                 'Content-Type': 'application/json',
@@ -2117,14 +2106,12 @@
             };
             return fetch(url, { ...options, headers });
         }
-
         async function loadAdminUsers() {
             const tbody = document.querySelector('#adminUsersTable tbody');
             if (!tbody) return;
             tbody.innerHTML = '<tr><td colspan="7">Загрузка...</td></tr>';
             try {
-                // Используем обычный fetch без авторизации, так как API не требует токена
-                const res = await fetch(`${ADMIN_API}/users`);
+                const res = await fetchAdmin(`${ADMIN_API}/users`);
                 if (!res.ok) throw new Error('Ошибка загрузки');
                 const users = await res.json();
                 if (!users || Object.keys(users).length === 0) {
@@ -2161,7 +2148,6 @@
                 showAdminMsg('Ошибка загрузки игроков: ' + e.message);
             }
         }
-
         async function adminSetBalance(userId) {
             const balance = Number(document.getElementById('adminBal_' + userId).value);
             if (isNaN(balance)) return showAdminMsg('Некорректный баланс');
@@ -2173,10 +2159,8 @@
             if (data.result === 'success') {
                 showAdminMsg('Баланс обновлён', 'success');
                 await loadAdminUsers();
-                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
             } else showAdminMsg('Ошибка обновления баланса');
         }
-
         async function adminGiveCase(userId) {
             const caseId = document.getElementById('adminCase_' + userId).value;
             if (!caseId) return showAdminMsg('Введите ID кейса');
@@ -2188,49 +2172,52 @@
             if (data.result === 'success') {
                 showAdminMsg('Кейс выдан', 'success');
                 await loadAdminUsers();
-                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
             } else showAdminMsg('Ошибка выдачи кейса');
         }
-
         async function adminSetLuck(userId) {
-            const luck = document.getElementById('adminLuck_' + userId).value;
+            const luck = Number(document.getElementById('adminLuck_' + userId).value);
+            if (isNaN(luck)) return showAdminMsg('Некорректный множитель');
             const res = await fetchAdmin(`${ADMIN_API}/set_luck`, {
                 method: 'POST',
-                body: JSON.stringify({user_id: userId, luck_multiplier: Number(luck)})
+                body: JSON.stringify({user_id: String(userId), luck_multiplier: luck})
             });
             const data = await res.json();
             if (data.result === 'success') {
                 showAdminMsg('Множитель удачи обновлён', 'success');
-                loadAdminUsers();
-                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+                await loadAdminUsers();
             } else showAdminMsg('Ошибка обновления множителя');
         }
-
         async function adminDeleteUser(userId) {
             if (!confirm('Удалить пользователя?')) return;
             const res = await fetchAdmin(`${ADMIN_API}/delete_user`, {
                 method: 'POST',
-                body: JSON.stringify({user_id: userId})
+                body: JSON.stringify({user_id: String(userId)})
             });
             const data = await res.json();
             if (data.result === 'success') {
                 showAdminMsg('Пользователь удалён', 'success');
-                loadAdminUsers();
-                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+                await loadAdminUsers();
             } else showAdminMsg('Ошибка удаления пользователя');
         }
-
         async function adminResetUsers() {
             if (!confirm('Сбросить всех пользователей?')) return;
             const res = await fetchAdmin(`${ADMIN_API}/reset_users`, {method: 'POST'});
             const data = await res.json();
             if (data.result === 'success') {
                 showAdminMsg('Все пользователи удалены', 'success');
-                loadAdminUsers();
-                if (typeof renderAdminPlayerList === 'function') renderAdminPlayerList();
+                await loadAdminUsers();
             } else showAdminMsg('Ошибка сброса');
         }
+        // Показываем админку только админу
+        document.addEventListener('DOMContentLoaded', function() {
+            const tg = window.Telegram && window.Telegram.WebApp;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id == 1388045673) {
+                document.getElementById('admin-panel-v2').style.display = 'block';
+                loadAdminUsers();
+            }
+        });
     </script>
+    <!-- КОНЕЦ НОВОЙ АДМИН-ПАНЕЛИ -->
     <script>
         // --- COMPLETE REWRITTEN AND FIXED JAVASCRIPT ---
         
